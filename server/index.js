@@ -143,8 +143,14 @@ Be comprehensive, informative, and helpful to users looking for online education
   }
 });
 
-// Catch all handler: send back React's index.html file for any non-API routes
-app.get('*', (req, res) => {
+// Serve React app for all non-API routes
+app.use((req, res, next) => {
+  // Skip API routes
+  if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/admin')) {
+    return next();
+  }
+  
+  // Serve React app for all other routes
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
