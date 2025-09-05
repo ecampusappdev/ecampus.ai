@@ -153,26 +153,33 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Fix CORS properly
 const allowedOrigins = [
-  "http://localhost:5173", // Local dev
-  "http://localhost:5174", // Another dev port if needed
-  "http://localhost:5175", // Your current dev port
-  "https://ecampusai-azure.vercel.app", // Your deployed frontend
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "https://ecampusai-azure.vercel.app", // ✅ Main frontend domain
+  "https://ecampusai.vercel.app",       // ✅ Backend's own domain
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, curl, etc.)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        console.error("❌ CORS blocked:", origin);
+        callback(new Error("CORS not allowed"));
       }
     },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+
+app.options("*", cors());
+
 
 app.use(express.json());
 
