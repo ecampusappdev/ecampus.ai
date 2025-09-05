@@ -16,6 +16,7 @@ function App() {
     const saved = localStorage.getItem('ecampus-theme')
     return saved ? JSON.parse(saved) : false
   })
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const listRef = useRef(null)
 
   // Convert plain text cues into markdown headings for consistent rendering
@@ -57,6 +58,7 @@ function App() {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         setShowChat(false)
+        setIsMobileMenuOpen(false)
       }
     }
     
@@ -65,6 +67,20 @@ function App() {
       return () => document.removeEventListener('keydown', handleEscape)
     }
   }, [showChat])
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (isMobileMenuOpen && !e.target.closest('.chat-sidebar') && !e.target.closest('.mobile-menu-btn')) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+    
+    if (isMobileMenuOpen) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [isMobileMenuOpen])
 
   async function handleSend(e) {
     e.preventDefault()
@@ -216,11 +232,17 @@ function App() {
       <div className={`chat-full-page ${isDarkTheme ? 'dark' : 'light'}`}>
         <div className="chat-header">
           <div className="chat-header-left">
+            <button 
+              className="mobile-menu-btn"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              ☰
+            </button>
             <div className="logo">
               <span className="logo-icon">🎓</span>
-              <span className="logo-text">eCampus AI</span>
+              <span className="logo-text">eCampus</span>
             </div>
-            <span className="tagline">Your Distance Learning Guide</span>
+            <span className="tagline">Your Distance Learning</span>
           </div>
           <div className="chat-header-right">
             {/* New Chat Controls */}
@@ -260,7 +282,7 @@ function App() {
         </div>
 
         <div className="chat-container">
-          <div className="chat-sidebar">
+          <div className={`chat-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
             <div className="sidebar-section">
               <h3>Quick Actions</h3>
               <div className="action-buttons">
@@ -458,7 +480,7 @@ function App() {
         <div className="hero-header">
           <div className="logo">
             <span className="logo-icon">🎓</span>
-            <span className="logo-text">eCampus AI</span>
+            <span className="logo-text">eCampus</span>
           </div>
           <button className="theme-toggle-hero" onClick={() => setIsDarkTheme(!isDarkTheme)}>
             {isDarkTheme ? '☀️' : '🌙'}
