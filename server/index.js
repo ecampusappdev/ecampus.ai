@@ -1,47 +1,215 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const OpenAI = require('openai');
-const mongoose = require('mongoose');
-const Lead = require('./models/Lead');
+// const express = require('express');
+// const cors = require('cors');
+// const dotenv = require('dotenv');
+// const OpenAI = require('openai');
+// const mongoose = require('mongoose');
+// const Lead = require('./models/Lead');
+
+// dotenv.config();
+
+// const app = express();
+// app.use(cors());
+// app.use(express.json());
+
+// // MongoDB Connection
+// const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ecampus-ai';
+// mongoose.connect(MONGODB_URI)
+//   .then(() => console.log('Connected to MongoDB'))
+//   .catch(err => console.error('MongoDB connection error:', err));
+
+// const openaiApiKey = process.env.OPENAI_API_KEY;
+// const modelFromEnv = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+
+// if (!openaiApiKey) {
+//   console.warn('Warning: OPENAI_API_KEY is not set. The /api/query endpoint will return 500.');
+// }
+
+// const openaiClient = new OpenAI({ apiKey: openaiApiKey });
+
+// app.get('/health', (_req, res) => {
+//   res.json({ status: 'ok' });
+// });
+
+// // Serve admin page
+// app.get('/admin', (req, res) => {
+//   res.sendFile(__dirname + '/admin.html');
+// });
+
+// // Save lead endpoint
+// app.post('/api/leads', async (req, res) => {
+//   try {
+//     const { name, email, phone, action, conversationHistory, lastQuestion } = req.body;
+    
+//     if (!name || !email || !phone || !action || !lastQuestion) {
+//       return res.status(400).json({ error: 'Missing required fields' });
+//     }
+
+//     const lead = new Lead({
+//       name,
+//       email,
+//       phone,
+//       action,
+//       conversationHistory: conversationHistory || [],
+//       lastQuestion
+//     });
+
+//     await lead.save();
+    
+//     console.log('Lead saved:', { name, email, action, lastQuestion });
+//     res.json({ success: true, message: 'Lead saved successfully', leadId: lead._id });
+//   } catch (error) {
+//     console.error('Error saving lead:', error);
+//     res.status(500).json({ error: 'Failed to save lead' });
+//   }
+// });
+
+// // Get all leads endpoint (for admin/export)
+// app.get('/api/leads', async (req, res) => {
+//   try {
+//     const leads = await Lead.find({}).sort({ createdAt: -1 });
+//     res.json({ leads });
+//   } catch (error) {
+//     console.error('Error fetching leads:', error);
+//     res.status(500).json({ error: 'Failed to fetch leads' });
+//   }
+// });
+
+// app.post('/api/query', async (req, res) => {
+//   try {
+//     const { question, conversationHistory = [] } = req.body || {};
+//     if (!question || typeof question !== 'string') {
+//       return res.status(400).json({ error: 'Invalid request: question is required' });
+//     }
+
+//     if (!openaiApiKey) {
+//       return res.status(500).json({ error: 'Server not configured: missing OPENAI_API_KEY' });
+//     }
+
+//     const systemPrompt = `You are an expert assistant for online university discovery in India. Your role is to provide comprehensive, detailed information about online courses, universities, and educational platforms in India. 
+
+// Provide detailed information including:
+// - Specific program names and details
+// - Exact or approximate fees
+// - Duration of programs
+// - Eligibility criteria
+// - Website links when available
+// - Special features or benefits
+// - Both government and private institutions
+
+// Be comprehensive, informative, and helpful to users looking for online education options in India.`;
+
+//     const userPrompt = `User question: ${question}`;
+
+//     // Build messages array with conversation history
+//     const messages = [
+//       { role: 'system', content: systemPrompt },
+//       ...conversationHistory.slice(-6), // Keep last 6 messages for context
+//       { role: 'user', content: userPrompt }
+//     ];
+
+//     const completion = await openaiClient.chat.completions.create({
+//       model: modelFromEnv,
+//       messages: messages,
+//       temperature: 0.7,
+//       max_tokens: 2000,
+//       stream: true,
+//     });
+
+//     // Set up streaming response
+//     res.setHeader('Content-Type', 'text/plain');
+//     res.setHeader('Cache-Control', 'no-cache');
+//     res.setHeader('Connection', 'keep-alive');
+
+//     let fullResponse = '';
+    
+//     for await (const chunk of completion) {
+//       const content = chunk.choices[0]?.delta?.content || '';
+//       if (content) {
+//         fullResponse += content;
+//         res.write(`data: ${JSON.stringify({ content, full: false })}\n\n`);
+//       }
+//     }
+    
+//     // Send final message
+//     res.write(`data: ${JSON.stringify({ content: '', full: true, fullResponse })}\n\n`);
+//     res.end();
+//   } catch (error) {
+//     console.error('Error in /api/query:', error);
+//     res.status(500).json({ error: 'Failed to get response from AI' });
+//   }
+// });
+// module.exports = app;
+
+
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const OpenAI = require("openai");
+const mongoose = require("mongoose");
+const path = require("path");
+const Lead = require("./models/Lead");
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// ✅ Fix CORS properly
+const allowedOrigins = [
+  "http://localhost:5173", // Local dev
+  "http://localhost:5174", // Another dev port if needed
+  "http://localhost:5175", // Your current dev port
+  "https://ecampusai-azure.vercel.app", // Your deployed frontend
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
-// MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ecampus-ai';
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// ✅ MongoDB Connection
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/ecampus-ai";
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => console.log("✅ Connected to MongoDB"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
+// ✅ OpenAI Setup
 const openaiApiKey = process.env.OPENAI_API_KEY;
-const modelFromEnv = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const modelFromEnv = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
 if (!openaiApiKey) {
-  console.warn('Warning: OPENAI_API_KEY is not set. The /api/query endpoint will return 500.');
+  console.warn("⚠️ Warning: OPENAI_API_KEY is not set!");
 }
 
 const openaiClient = new OpenAI({ apiKey: openaiApiKey });
 
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok' });
+// ✅ Health Check API
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
 });
 
-// Serve admin page
-app.get('/admin', (req, res) => {
-  res.sendFile(__dirname + '/admin.html');
+// ✅ Serve Admin Page
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
 });
 
-// Save lead endpoint
-app.post('/api/leads', async (req, res) => {
+// ✅ Save Lead API
+app.post("/api/leads", async (req, res) => {
   try {
     const { name, email, phone, action, conversationHistory, lastQuestion } = req.body;
-    
+
     if (!name || !email || !phone || !action || !lastQuestion) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
     const lead = new Lead({
@@ -50,42 +218,45 @@ app.post('/api/leads', async (req, res) => {
       phone,
       action,
       conversationHistory: conversationHistory || [],
-      lastQuestion
+      lastQuestion,
     });
 
     await lead.save();
-    
-    console.log('Lead saved:', { name, email, action, lastQuestion });
-    res.json({ success: true, message: 'Lead saved successfully', leadId: lead._id });
+    console.log("✅ Lead saved:", { name, email, action, lastQuestion });
+
+    res.json({ success: true, message: "Lead saved successfully", leadId: lead._id });
   } catch (error) {
-    console.error('Error saving lead:', error);
-    res.status(500).json({ error: 'Failed to save lead' });
+    console.error("❌ Error saving lead:", error);
+    res.status(500).json({ error: "Failed to save lead" });
   }
 });
 
-// Get all leads endpoint (for admin/export)
-app.get('/api/leads', async (req, res) => {
+// ✅ Fetch All Leads API
+app.get("/api/leads", async (req, res) => {
   try {
     const leads = await Lead.find({}).sort({ createdAt: -1 });
     res.json({ leads });
   } catch (error) {
-    console.error('Error fetching leads:', error);
-    res.status(500).json({ error: 'Failed to fetch leads' });
+    console.error("❌ Error fetching leads:", error);
+    res.status(500).json({ error: "Failed to fetch leads" });
   }
 });
 
-app.post('/api/query', async (req, res) => {
+// ✅ OpenAI Query API
+app.post("/api/query", async (req, res) => {
   try {
     const { question, conversationHistory = [] } = req.body || {};
-    if (!question || typeof question !== 'string') {
-      return res.status(400).json({ error: 'Invalid request: question is required' });
+
+    if (!question || typeof question !== "string") {
+      return res.status(400).json({ error: "Invalid request: question is required" });
     }
 
     if (!openaiApiKey) {
-      return res.status(500).json({ error: 'Server not configured: missing OPENAI_API_KEY' });
+      return res.status(500).json({ error: "Server not configured: missing OPENAI_API_KEY" });
     }
 
-    const systemPrompt = `You are an expert assistant for online university discovery in India. Your role is to provide comprehensive, detailed information about online courses, universities, and educational platforms in India. 
+    const systemPrompt = `You are an expert assistant for online university discovery in India. 
+Your role is to provide comprehensive, detailed information about online courses, universities, and educational platforms in India. 
 
 Provide detailed information including:
 - Specific program names and details
@@ -94,50 +265,46 @@ Provide detailed information including:
 - Eligibility criteria
 - Website links when available
 - Special features or benefits
-- Both government and private institutions
-
-Be comprehensive, informative, and helpful to users looking for online education options in India.`;
+- Both government and private institutions`;
 
     const userPrompt = `User question: ${question}`;
 
-    // Build messages array with conversation history
     const messages = [
-      { role: 'system', content: systemPrompt },
-      ...conversationHistory.slice(-6), // Keep last 6 messages for context
-      { role: 'user', content: userPrompt }
+      { role: "system", content: systemPrompt },
+      ...conversationHistory.slice(-6),
+      { role: "user", content: userPrompt },
     ];
 
     const completion = await openaiClient.chat.completions.create({
       model: modelFromEnv,
-      messages: messages,
+      messages,
       temperature: 0.7,
       max_tokens: 2000,
       stream: true,
     });
 
-    // Set up streaming response
-    res.setHeader('Content-Type', 'text/plain');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+    // ✅ Streaming response
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
 
-    let fullResponse = '';
-    
+    let fullResponse = "";
+
     for await (const chunk of completion) {
-      const content = chunk.choices[0]?.delta?.content || '';
+      const content = chunk.choices[0]?.delta?.content || "";
       if (content) {
         fullResponse += content;
         res.write(`data: ${JSON.stringify({ content, full: false })}\n\n`);
       }
     }
-    
-    // Send final message
-    res.write(`data: ${JSON.stringify({ content: '', full: true, fullResponse })}\n\n`);
+
+    res.write(`data: ${JSON.stringify({ content: "", full: true, fullResponse })}\n\n`);
     res.end();
   } catch (error) {
-    console.error('Error in /api/query:', error);
-    res.status(500).json({ error: 'Failed to get response from AI' });
+    console.error("❌ Error in /api/query:", error);
+    res.status(500).json({ error: "Failed to get response from AI" });
   }
 });
+
+// ✅ Export for Vercel
 module.exports = app;
-
-
