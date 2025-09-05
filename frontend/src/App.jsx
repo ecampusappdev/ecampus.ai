@@ -514,7 +514,7 @@ import ReactMarkdown from 'react-markdown'
 import './App.css'
 
 // 🌐 Set your deployed backend URL here
-const BACKEND_URL = "https://ecampus-dzmi29u8f-ecampusapps-projects.vercel.app"
+const BACKEND_URL = "https://ecampusai.vercel.app/"
 
 function App() {
   const [messages, setMessages] = useState(() => {
