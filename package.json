@@ -1,0 +1,22 @@
+{
+  "name": "ecampus-ai",
+  "version": "1.0.0",
+  "description": "Online University Query Chat with AI",
+  "main": "server/index.js",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd server && npm install && npm start",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd frontend && npm run dev\"",
+    "install-all": "npm install && cd server && npm install && cd ../frontend && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["ai", "chat", "education", "university", "online"],
+  "author": "",
+  "license": "ISC"
+}

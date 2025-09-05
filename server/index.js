@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 const OpenAI = require('openai');
 const mongoose = require('mongoose');
 const Lead = require('./models/Lead');
@@ -10,6 +11,9 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from the React app build
+app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ecampus-ai';
@@ -137,6 +141,11 @@ Be comprehensive, informative, and helpful to users looking for online education
     console.error('Error in /api/query:', error);
     res.status(500).json({ error: 'Failed to get response from AI' });
   }
+});
+
+// Catch all handler: send back React's index.html file for any non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;

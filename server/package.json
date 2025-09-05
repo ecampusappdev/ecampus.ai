@@ -2,6 +2,10 @@
   "name": "server",
   "version": "1.0.0",
   "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "dev": "node index.js",
     "start": "NODE_ENV=production node index.js"
