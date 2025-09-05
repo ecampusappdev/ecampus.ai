@@ -138,10 +138,6 @@ Be comprehensive, informative, and helpful to users looking for online education
     res.status(500).json({ error: 'Failed to get response from AI' });
   }
 });
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+module.exports = app;
 
 
