@@ -25,7 +25,7 @@ const UniversityCarousel = () => {
       id: 1,
       name: "Amity University",
       logo: "https://www.amity.edu/images/logo.png", // add your URL
-      website: "https://www.amity.edu/online/",
+      website: "https://amityonline.com/",
       description: "Leading private university with comprehensive online programs",
     },
     {
@@ -53,21 +53,21 @@ const UniversityCarousel = () => {
       id: 5,
       name: "TISS",
       logo: "https://tiss.ac.in/uploads/images/tiss-logo_uJSyK8O.png", // add your URL
-      website: "https://www.tiss.edu/",
+      website: "https://tiss.ac.in/academics/teaching-programmes/",
       description: "Social sciences focused university with research excellence",
     },
     {
       id: 6,
       name: "NMIMS",
-      logo: "https://www.nmims.edu/images/nmims-university-logo.png", // add your URL
-      website: "https://www.nmims.edu/",
+      logo: "https://online.nmims.edu/images/NMIMS-CODE.png", // add your URL
+      website: "https://online.nmims.edu/",
       description: "Business and management focused university with industry",
     },
     {
       id: 7,
       name: "BITS Pilani",
-      logo: "https://www.bits-pilani.ac.in/wp-content/uploads/bits-pillani-2-1.webp", // add your URL
-      website: "https://www.bits-pilani.ac.in/",
+      logo: "https://bits-pilani-wilp.ac.in/public/assets/images/logo.png?v=2.0", // add your URL
+      website: "https://online.nmims.edu/",
       description: "Premier engineering and technology institute with online programs",
     },
     {
@@ -87,8 +87,8 @@ const UniversityCarousel = () => {
     {
       id: 6,
       name: "NMIMS",
-      logo: "https://www.nmims.edu/images/nmims-university-logo.png", // add your URL
-      website: "https://www.nmims.edu/",
+      logo: "https://online.nmims.edu/images/NMIMS-CODE.png", // add your URL
+      website: "https://online.nmims.edu/",
       description: "Business and management focused university with industry",
     },
     {
