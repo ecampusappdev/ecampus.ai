@@ -32,8 +32,7 @@ const Header = ({
     }`}>
       <div className="flex items-center gap-3 md:gap-4">
         <div className="flex items-center justify-center gap-3 text-lg md:text-2xl font-bold">
-          <span className="text-2xl md:text-3xl">🎓</span>
-          <span>eCampus</span>
+           <img src="https://www.ecampusapp.com/wp-content/themes/markup/myassets/img/logo--Purple.webp" alt="eCampus" className='w-39 h-10'/>
         </div>
         <span className="text-xs md:text-sm hidden sm:block">Your Distance Learning</span>
       </div>

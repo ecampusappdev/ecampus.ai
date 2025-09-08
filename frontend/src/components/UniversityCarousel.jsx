@@ -31,7 +31,7 @@ const UniversityCarousel = () => {
     {
       id: 2,
       name: "IGNOU",
-      logo: "https://www.ignou.ac.in/assets/img/ignouLogo.png", // add your URL
+      logo: "https://ignouadmission.samarth.edu.in/assets/a74f1fcdb316b6bf926c620666d81788/site_files/logo-light.png", // Updated working URL
       website: "https://www.ignou.ac.in/",
       description: "India's largest open university with flexible learning options",
     },
@@ -157,13 +157,18 @@ const UniversityCarousel = () => {
                             src={u.logo}
                             alt={u.name}
                             className="max-h-40 w-auto object-contain"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'block';
+                            }}
                           />
-                        ) : (
-                          // keep area white and clean if you haven't added a logo yet
-                          <div className="text-sm text-gray-400 select-none">
-                            {/* Empty placeholder - stays white */}
-                          </div>
-                        )}
+                        ) : null}
+                        <div 
+                          className="text-sm text-gray-400 select-none"
+                          style={{ display: u.logo ? 'none' : 'block' }}
+                        >
+                          {u.name}
+                        </div>
                       </div>
 
                       {/* Text */}

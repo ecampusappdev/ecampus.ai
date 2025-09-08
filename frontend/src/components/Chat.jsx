@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { WelcomeSection, UniversityCarousel } from './index';
 
@@ -12,6 +12,105 @@ const Chat = ({
   isDarkTheme 
 }) => {
   const listRef = useRef(null);
+  const [dynamicPlaceholder, setDynamicPlaceholder] = useState('Ask about universities, courses, fees...');
+  const [aiFollowUpQuestion, setAiFollowUpQuestion] = useState('');
+
+  // Function to generate context-aware placeholder text
+  const generateContextualPlaceholder = (messages) => {
+    // If no messages, show initial placeholder
+    if (messages.length === 0) {
+      return 'Ask about universities, courses, fees...';
+    }
+
+    // If only user messages (no assistant response yet), keep initial placeholder
+    const hasAssistantMessage = messages.some(msg => msg.role === 'assistant');
+    if (!hasAssistantMessage) {
+      return 'Ask about universities, courses, fees...';
+    }
+
+    // If we have an AI-generated follow-up question, use it
+    if (aiFollowUpQuestion) {
+      return aiFollowUpQuestion;
+    }
+
+    // Fallback to static context-aware placeholders
+    const lastAssistantMessage = [...messages].reverse().find(msg => msg.role === 'assistant');
+    if (lastAssistantMessage) {
+      const messageText = lastAssistantMessage.text.toLowerCase();
+      
+      // MBA related context
+      if (messageText.includes('mba') || messageText.includes('master of business')) {
+        const placeholders = [
+          'Tell me about MBA specializations...',
+          'Compare MBA fees across universities...',
+          'What are the admission requirements?',
+          'Show me MBA programs in Finance...',
+          'Which MBA has best placement records?'
+        ];
+        return placeholders[Math.floor(Math.random() * placeholders.length)];
+      }
+      
+      // Engineering related context
+      if (messageText.includes('btech') || messageText.includes('engineering') || messageText.includes('b.e.')) {
+        const placeholders = [
+          'Tell me about Computer Science Engineering...',
+          'Compare B.Tech fees and duration...',
+          'What are the top engineering colleges?',
+          'Show me Mechanical Engineering programs...',
+          'Which engineering branch has best scope?'
+        ];
+        return placeholders[Math.floor(Math.random() * placeholders.length)];
+      }
+      
+      // Online courses context
+      if (messageText.includes('online') || messageText.includes('distance')) {
+        const placeholders = [
+          'Tell me about online learning platforms...',
+          'Compare online vs regular courses...',
+          'What are the examination patterns?',
+          'Show me flexible study options...',
+          'Which online courses are UGC approved?'
+        ];
+        return placeholders[Math.floor(Math.random() * placeholders.length)];
+      }
+      
+      // Fees related context
+      if (messageText.includes('fee') || messageText.includes('cost') || messageText.includes('price')) {
+        const placeholders = [
+          'Break down the fee structure...',
+          'Tell me about scholarship options...',
+          'Compare total costs including expenses...',
+          'What are the payment options?',
+          'Show me most affordable programs...'
+        ];
+        return placeholders[Math.floor(Math.random() * placeholders.length)];
+      }
+      
+      // University specific context
+      if (messageText.includes('university') || messageText.includes('college') || messageText.includes('institute')) {
+        const placeholders = [
+          'Tell me about admission process...',
+          'Compare different universities...',
+          'What are the eligibility criteria?',
+          'Show me placement statistics...',
+          'Which university is best for my field?'
+        ];
+        return placeholders[Math.floor(Math.random() * placeholders.length)];
+      }
+      
+      // General follow-up
+      const generalPlaceholders = [
+        'Tell me more about this...',
+        'Compare different options...',
+        'What are the requirements?',
+        'Show me more details...',
+        'Which one would you recommend?'
+      ];
+      return generalPlaceholders[Math.floor(Math.random() * generalPlaceholders.length)];
+    }
+    
+    return 'Ask a follow-up...';
+  };
 
   // Convert plain text cues into markdown headings for consistent rendering
   const formatMessage = (text) => {
@@ -38,6 +137,14 @@ const Chat = ({
     }
   }, [messages, typing]);
 
+  // Update placeholder when messages change, but only when not typing
+  useEffect(() => {
+    if (!typing) {
+      const newPlaceholder = generateContextualPlaceholder(messages);
+      setDynamicPlaceholder(newPlaceholder);
+    }
+  }, [messages, aiFollowUpQuestion, typing]);
+
   async function handleSend(e) {
     e.preventDefault();
     const question = input.trim();
@@ -46,6 +153,9 @@ const Chat = ({
     setMessages((m) => [...m, userMsg]);
     setInput('');
     setTyping(true);
+    
+    // Clear AI follow-up question when user sends new message
+    setAiFollowUpQuestion('');
     
     // Add a placeholder message for the streaming response
     const assistantMsgId = Date.now() + 1;
@@ -94,6 +204,12 @@ const Chat = ({
                     ? { ...msg, text: data.fullResponse }
                     : msg
                 ));
+                
+                // Set AI-generated follow-up question as placeholder
+                if (data.followUpQuestion) {
+                  setAiFollowUpQuestion(data.followUpQuestion);
+                }
+                
                 setTyping(false);
                 return;
               } else if (data.content) {
@@ -145,13 +261,48 @@ const Chat = ({
                     ? 'bg-neutral-800 text-white border border-gray-600 rounded-bl-md shadow-lg' 
                     : 'bg-white text-black border border-gray-200 rounded-bl-md shadow-lg'
               }`}>
-                <ReactMarkdown 
-                  components={{
-                    a: CustomLink
-                  }}
-                >
-                  {formatMessage(m.text)}
-                </ReactMarkdown>
+                {/* Check if message contains HTML table */}
+                {m.text.includes('<table') ? (
+                  <div>
+                    {/* Render text before table */}
+                    {m.text.split('<table')[0] && (
+                      <ReactMarkdown 
+                        components={{
+                          a: CustomLink
+                        }}
+                      >
+                        {formatMessage(m.text.split('<table')[0])}
+                      </ReactMarkdown>
+                    )}
+                    
+                    {/* Render the table */}
+                    <div 
+                      className="table-container"
+                      dangerouslySetInnerHTML={{ 
+                        __html: m.text.substring(m.text.indexOf('<table'), m.text.lastIndexOf('</table>') + 8)
+                      }}
+                    />
+                    
+                    {/* Render text after table */}
+                    {m.text.split('</table>')[1] && (
+                      <ReactMarkdown 
+                        components={{
+                          a: CustomLink
+                        }}
+                      >
+                        {formatMessage(m.text.split('</table>')[1])}
+                      </ReactMarkdown>
+                    )}
+                  </div>
+                ) : (
+                  <ReactMarkdown 
+                    components={{
+                      a: CustomLink
+                    }}
+                  >
+                    {formatMessage(m.text)}
+                  </ReactMarkdown>
+                )}
               </div>
             </div>
           ))}
@@ -194,7 +345,7 @@ const Chat = ({
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a follow-up..."
+              placeholder={dynamicPlaceholder}
               className={`flex-1 px-6 py-4 border-0 outline-none text-base bg-transparent rounded-2xl ${
                 isDarkTheme 
                   ? 'text-white placeholder-gray-400' 
