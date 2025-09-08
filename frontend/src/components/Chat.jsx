@@ -254,7 +254,7 @@ const Chat = ({
           
           {messages.map((m) => (
             <div key={m.id} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className={`max-w-[85%] px-5 py-4 rounded-3xl text-sm leading-relaxed relative whitespace-pre-wrap break-words ${
+              <div className={`max-w-[85%] px-5 py-4 rounded-3xl text-base leading-relaxed relative whitespace-pre-wrap break-words ${
                 m.role === 'user' 
                   ? 'bg-blue-900 text-white rounded-br-md' 
                   : isDarkTheme 
@@ -266,18 +266,20 @@ const Chat = ({
                   <div>
                     {/* Render text before table */}
                     {m.text.split('<table')[0] && (
-                      <ReactMarkdown 
-                        components={{
-                          a: CustomLink
-                        }}
-                      >
-                        {formatMessage(m.text.split('<table')[0])}
-                      </ReactMarkdown>
+                      <div className="text-base leading-relaxed mb-6">
+                        <ReactMarkdown 
+                          components={{
+                            a: CustomLink
+                          }}
+                        >
+                          {formatMessage(m.text.split('<table')[0])}
+                        </ReactMarkdown>
+                      </div>
                     )}
                     
                     {/* Render the table */}
                     <div 
-                      className="table-container"
+                      className="table-container text-base my-6"
                       dangerouslySetInnerHTML={{ 
                         __html: m.text.substring(m.text.indexOf('<table'), m.text.lastIndexOf('</table>') + 8)
                       }}
@@ -285,23 +287,27 @@ const Chat = ({
                     
                     {/* Render text after table */}
                     {m.text.split('</table>')[1] && (
-                      <ReactMarkdown 
-                        components={{
-                          a: CustomLink
-                        }}
-                      >
-                        {formatMessage(m.text.split('</table>')[1])}
-                      </ReactMarkdown>
+                      <div className="text-base leading-relaxed mt-6">
+                        <ReactMarkdown 
+                          components={{
+                            a: CustomLink
+                          }}
+                        >
+                          {formatMessage(m.text.split('</table>')[1])}
+                        </ReactMarkdown>
+                      </div>
                     )}
                   </div>
                 ) : (
-                  <ReactMarkdown 
-                    components={{
-                      a: CustomLink
-                    }}
-                  >
-                    {formatMessage(m.text)}
-                  </ReactMarkdown>
+                  <div className="text-base leading-relaxed space-y-4">
+                    <ReactMarkdown 
+                      components={{
+                        a: CustomLink
+                      }}
+                    >
+                      {formatMessage(m.text)}
+                    </ReactMarkdown>
+                  </div>
                 )}
               </div>
             </div>

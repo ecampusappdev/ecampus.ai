@@ -36,7 +36,7 @@
 .message-content p {
   margin: 4px 0;
   line-height: 1.55;
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 .message-content ul {
@@ -47,7 +47,7 @@
 .message-content li {
   margin: 2px 0;
   line-height: 1.55;
-  font-size: 0.98rem;
+  font-size: 1.08rem;
 }
 
 .message-content ol {
@@ -152,7 +152,7 @@
 .table-container table {
   width: 100% !important;
   border-collapse: collapse !important;
-  font-size: 0.9rem !important;
+  font-size: 1rem !important;
   background: white !important;
   border-radius: 8px !important;
   overflow: hidden !important;
