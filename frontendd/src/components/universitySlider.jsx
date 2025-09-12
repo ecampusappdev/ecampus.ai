@@ -201,41 +201,50 @@ const UniversitySlider = () => {
     pauseOnHover: true,
     pauseOnFocus: false,
     responsive: [
-      { breakpoint: 1024, settings: { slidesToShow: 3 } },
-      { breakpoint: 768, settings: { slidesToShow: 2 } },
-      { breakpoint: 640, settings: { slidesToShow: 1 } },
+      { breakpoint: 1024, settings: { slidesToShow: 3, arrows: true } },
+      { breakpoint: 768, settings: { slidesToShow: 2, arrows: true } },
+      { breakpoint: 640, settings: { slidesToShow: 1, arrows: false, dots: true } },
     ],
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
+    <div className="max-w-4xl mx-auto px-4 py-6">
       <Slider {...settings}>
         {items.map((item) => (
-          <div key={item.id} className="px-3">
-            <div className="relative group bg-neutral-900 shadow-lg rounded-2xl overflow-hidden">
+          <div key={item.id} className="px-2">
+            <div className="relative group bg-neutral-900 shadow-lg rounded-xl overflow-hidden h-32">
               {/* Logo */}
               <img
                 src={item.logo}
                 alt={item.name}
-                className="h-40 w-full object-contain p-6"
+                className="h-full w-full object-contain p-4"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextElementSibling.style.display = 'flex';
+                }}
               />
+              
+              {/* Fallback text if logo fails to load */}
+              <div className="h-full w-full flex items-center justify-center text-white text-sm font-medium" style={{display: 'none'}}>
+                {item.name}
+              </div>
 
              {/* Overlay on hover */}
 <motion.div
-  initial={{ opacity: 0, y: 30 }}
+  initial={{ opacity: 0, y: 20 }}
   whileHover={{ opacity: 1, y: 0 }}
   transition={{ duration: 0.3 }}
-  className="absolute inset-0 bg-black bg-opacity-90 flex flex-col justify-center items-center text-white p-6"
+  className="absolute inset-0 bg-black bg-opacity-85 flex flex-col justify-center items-center text-white p-3"
 >
   {/* University details */}
-  <div className="space-y-3 text-center">
-    <p className="text-base  tracking-wide">
+  <div className="space-y-1 text-center">
+    <p className="text-xs font-medium">
       <span className="text-white">{item.courses}</span>
     </p>
-    <p className="text-base  tracking-wide">
+    <p className="text-xs font-medium">
       <span className="text-white">{item.students}</span>
     </p>
-    <p className="text-base tracking-wide">
+    <p className="text-xs font-medium">
       <span className="text-white">{item.teachers}</span>
     </p>
   </div>
@@ -245,7 +254,7 @@ const UniversitySlider = () => {
     href={item.website}
     target="_blank"
     rel="noreferrer"
-    className="mt-6 text-lg font-bold underline decoration-white/40 decoration-2 underline-offset-4 hover:text-emerald-300 transition-colors"
+    className="mt-3 text-sm font-bold underline decoration-white/40 decoration-1 underline-offset-2 hover:text-emerald-300 transition-colors"
   >
     {item.name}
   </a>

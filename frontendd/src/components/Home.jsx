@@ -187,8 +187,8 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4">
-      <div className={`w-[99%] h-[95vh] bg-gradient-to-r from-[#434343] to-[#000000] rounded-[20px] flex flex-col items-center px-4 ${isChatActive ? 'pb-4' : 'pb-10 md:pb-14'} animate-gradient-x`}>
+    <div className="h-screen bg-black flex flex-col items-center justify-center p-2 md:p-4 lg:p-6 overflow-hidden">
+      <div className={`w-full h-[95vh] bg-gradient-to-r from-[#434343] to-[#000000] rounded-[20px] flex flex-col items-center px-3 md:px-4 ${isChatActive ? 'pb-4' : 'pb-10 md:pb-14'} animate-gradient-x`}>
 
         {!isChatActive ? (
           // Home view
@@ -202,7 +202,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="mt-auto w-full pb-6 md:pb-8">
+            <div className="mt-auto w-full pb-4 md:pb-8">
               <UniversitySlider/>
             </div>
           </>
@@ -225,7 +225,7 @@ const Home = () => {
             </div>
 
             {/* Messages area */}
-            <div className="flex-1 w-full flex justify-center overflow-y-auto scrollbar-hidden py-6">
+            <div className="flex-1 w-full flex justify-center overflow-y-auto scrollbar-hidden py-4 min-h-0">
               <div className="w-full max-w-4xl px-4 space-y-4">
                 {messages.map((message, index) => (
                   <div
@@ -265,7 +265,7 @@ const Home = () => {
             </div>
 
             {/* Input at bottom */}
-            <div className="w-full mt-auto mb-0 pt-4 pb-0">
+            <div className="w-full flex-shrink-0 pt-2 pb-2">
               <Chat 
                 onSubmit={async (query) => {
                   const userMessage = { role: 'user', content: query };
