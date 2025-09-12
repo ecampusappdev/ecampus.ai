@@ -273,13 +273,13 @@ const Chat = ({ onSubmit, isInChatMode = false }) => {
             onKeyDown={handleKeyDown}
             placeholder="Ask anything..."
             rows={1}
-            className="flex-1 bg-transparent text-white placeholder-gray-400 outline-none text-sm md:text-base resize-none leading-6 py-1 md:py-1.5 min-h-[40px] max-h-32 overflow-y-auto scrollbar-hidden"
+            className="flex-1 bg-transparent text-white placeholder-gray-400 outline-none text-sm md:text-base resize-none leading-6 py-1 md:py-1.5 min-h-[36px] md:min-h-[40px] max-h-28 md:max-h-32 overflow-y-auto scrollbar-hidden"
           />
 
           <button
             type="submit"
             aria-label="Send"
-            className="ml-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 transition-colors flex-shrink-0"
+            className="ml-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 transition-colors flex-shrink-0"
           >
             <svg
               className="w-4 h-4"
