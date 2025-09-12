@@ -1,0 +1,261 @@
+// import React from "react";
+// import Slider from "react-slick";
+// import { motion } from "framer-motion";
+// import "slick-carousel/slick/slick.css";
+// import "slick-carousel/slick/slick-theme.css";
+// import tiss from "/tiss.png";
+// import symbiosis from "/symbiosis.png"
+// import manipal from "/manipal.png" 
+
+
+// const UniversitySlider= () => {
+//   const items = [
+//     {
+//       id: 1,
+//       name: "Amity University",
+//       logo: "https://www.amity.edu/images/logo.png",
+//       website: "https://amityonline.com/",
+//       courses: 0,
+//     },
+//     {
+//       id: 2,
+//       name: "IGNOU",
+//       logo: "https://ignouadmission.samarth.edu.in/assets/a74f1fcdb316b6bf926c620666d81788/site_files/logo-light.png",
+//       website: "https://www.ignou.ac.in/",
+//       courses: 0,
+//     },
+//     {
+//       id: 3,
+//       name: "Symbiosis",
+//       logo: symbiosis,
+//       website: "https://www.symbiosis.ac.in/",
+//       courses: 0,
+//     },
+//     {
+//       id: 4,
+//       name: "Manipal University",
+//       logo: manipal,
+//       website: "https://www.manipal.edu/",
+//       courses: 0,
+//     },
+//     {
+//       id: 5,
+//       name: "TISS",
+//       logo: tiss,
+//       website: "https://www.tiss.edu/",
+//       courses: 0,
+//     },
+//     {
+//       id: 6,
+//       name: "NMIMS",
+//       logo: "https://online.nmims.edu/images/NMIMS-CODE.png",
+//       website: "https://online.nmims.edu/",
+//       courses: 0,
+//     },
+//     {
+//       id: 7,
+//       name: "BITS Pilani",
+//       logo: "https://bits-pilani-wilp.ac.in/public/assets/images/logo.png?v=2.0",
+//       website: "https://www.bits-pilani.ac.in/",
+//       courses: 0,
+//     },
+//     {
+//       id: 8,
+//       name: "JNU",
+//       logo: "https://www.jnu.ac.in/sites/default/files/logo_0.png",
+//       website: "https://www.jnu.ac.in/",
+//       courses: 0,
+//     },
+//   ];
+
+//   const settings = {
+//     dots: true,
+//     infinite: true,
+//     speed: 600,
+//     slidesToShow: 3,
+//     slidesToScroll: 1,
+//     arrows: true,
+//     autoplay: true,
+//     autoplaySpeed: 3000,
+//     pauseOnHover: true,
+//     pauseOnFocus: false,
+//     responsive: [
+//       { breakpoint: 1024, settings: { slidesToShow: 3 } },
+//       { breakpoint: 768, settings: { slidesToShow: 2 } },
+//       { breakpoint: 640, settings: { slidesToShow: 1 } },
+//     ],
+//   };
+
+//   return (
+//     <div className="max-w-5xl mx-auto px-6 py-10">
+//       <Slider {...settings}>
+//         {items.map((item) => (
+//           <div key={item.id} className="px-3">
+//             <div className="relative group bg-neutral-900 shadow-lg rounded-2xl overflow-hidden">
+//               {/* Logo */}
+//               <img
+//                 src={item.logo}
+//                 alt={item.name}
+//                 className="h-40 w-full object-contain p-6"
+//               />
+
+//               {/* Overlay on hover */}
+//               <motion.div
+//                 initial={{ opacity: 0 }}
+//                 whileHover={{ opacity: 1 }}
+//                 className="absolute inset-0 bg-black bg-opacity-80 flex flex-col justify-between items-center text-white p-4"
+//               >
+//                 {/* Details above */}
+//                 <div className="text-sm font-medium">{item.courses ? `${item.courses} Courses` : item.name}</div>
+
+//                 {/* Logo stays visible (optional faded look) */}
+//                 <img
+//                   src={item.logo}
+//                   alt={item.name}
+//                   className="h-16 object-contain opacity-80"
+//                 />
+
+//                 {/* Name at bottom */}
+//                 <a href={item.website} target="_blank" rel="noreferrer" className="text-lg font-semibold underline decoration-white/40 decoration-1 underline-offset-4">
+//                   {item.name}
+//                 </a>
+//               </motion.div>
+//             </div>
+//           </div>
+//         ))}
+//       </Slider>
+//     </div>
+//   );
+// };
+
+// export default UniversitySlider;
+
+
+import React from "react";
+import Slider from "react-slick";
+import { motion } from "framer-motion";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import tiss from "/tiss.png";
+import symbiosis from "/symbiosis.png";
+import manipal from "/manipal.png";
+
+const UniversitySlider = () => {
+  const items = [
+    {
+      id: 1,
+      name: "Amity University",
+      logo: "https://www.amity.edu/images/logo.png",
+      website: "https://amityonline.com/",
+      courses: "7+ Courses",
+      students: "12k+ Students",
+      teachers: "8+ Teachers",
+    },
+    {
+      id: 2,
+      name: "IGNOU",
+      logo: "https://ignouadmission.samarth.edu.in/assets/a74f1fcdb316b6bf926c620666d81788/site_files/logo-light.png",
+      website: "https://www.ignou.ac.in/",
+      courses: "10+ Courses",
+      students: "20k+ Students",
+      teachers: "15+ Teachers",
+    },
+    {
+      id: 3,
+      name: "Symbiosis",
+      logo: symbiosis,
+      website: "https://www.symbiosis.ac.in/",
+      courses: "12+ Courses",
+      students: "18k+ Students",
+      teachers: "20+ Teachers",
+    },
+    {
+      id: 4,
+      name: "Manipal University",
+      logo: manipal,
+      website: "https://www.manipal.edu/",
+      courses: "15+ Courses",
+      students: "25k+ Students",
+      teachers: "30+ Teachers",
+    },
+    {
+      id: 5,
+      name: "TISS",
+      logo: tiss,
+      website: "https://www.tiss.edu/",
+      courses: "9+ Courses",
+      students: "10k+ Students",
+      teachers: "12+ Teachers",
+    },
+  ];
+
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 600,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    arrows: true,
+    autoplay: true,
+    autoplaySpeed: 3000,
+    pauseOnHover: true,
+    pauseOnFocus: false,
+    responsive: [
+      { breakpoint: 1024, settings: { slidesToShow: 3 } },
+      { breakpoint: 768, settings: { slidesToShow: 2 } },
+      { breakpoint: 640, settings: { slidesToShow: 1 } },
+    ],
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto px-6 py-10">
+      <Slider {...settings}>
+        {items.map((item) => (
+          <div key={item.id} className="px-3">
+            <div className="relative group bg-neutral-900 shadow-lg rounded-2xl overflow-hidden">
+              {/* Logo */}
+              <img
+                src={item.logo}
+                alt={item.name}
+                className="h-40 w-full object-contain p-6"
+              />
+
+             {/* Overlay on hover */}
+<motion.div
+  initial={{ opacity: 0, y: 30 }}
+  whileHover={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.3 }}
+  className="absolute inset-0 bg-black bg-opacity-90 flex flex-col justify-center items-center text-white p-6"
+>
+  {/* University details */}
+  <div className="space-y-3 text-center">
+    <p className="text-base  tracking-wide">
+      <span className="text-white">{item.courses}</span>
+    </p>
+    <p className="text-base  tracking-wide">
+      <span className="text-white">{item.students}</span>
+    </p>
+    <p className="text-base tracking-wide">
+      <span className="text-white">{item.teachers}</span>
+    </p>
+  </div>
+
+  {/* Bottom link */}
+  <a
+    href={item.website}
+    target="_blank"
+    rel="noreferrer"
+    className="mt-6 text-lg font-bold underline decoration-white/40 decoration-2 underline-offset-4 hover:text-emerald-300 transition-colors"
+  >
+    {item.name}
+  </a>
+</motion.div>
+            </div>
+          </div>
+        ))}
+      </Slider>
+    </div>
+  );
+};
+
+export default UniversitySlider;

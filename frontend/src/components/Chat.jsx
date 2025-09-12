@@ -14,6 +14,7 @@ const Chat = ({
   const listRef = useRef(null);
   const [dynamicPlaceholder, setDynamicPlaceholder] = useState('Ask about universities, courses, fees...');
   const [aiFollowUpQuestion, setAiFollowUpQuestion] = useState('');
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Function to generate context-aware placeholder text
   const generateContextualPlaceholder = (messages) => {
@@ -119,6 +120,8 @@ const Chat = ({
     let formatted = text.replace(/(^|\n)\s*Semester\s+(\d+)\s*(\n|$)/g, (m, p1, num, p3) => `${p1}## Semester ${num}\n`);
     // Optional: Promote lines that look like numbered section titles like "1. <Title>" to h3
     formatted = formatted.replace(/(^|\n)\s*\d+\.\s+([^\n]+)\s*(\n|$)/g, (m, p1, title, p3) => `${p1}### ${title.trim()}\n`);
+    // Convert horizontal line separators (---) to markdown horizontal rules
+    formatted = formatted.replace(/(^|\n)\s*---\s*(\n|$)/g, (m, p1, p2) => `${p1}\n\n---\n\n`);
     return formatted;
   };
 
@@ -129,11 +132,92 @@ const Chat = ({
     </a>
   );
 
-  useEffect(() => {
+  // Handle scroll to show/hide scroll-to-bottom button
+  const handleScroll = () => {
     if (listRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = listRef.current;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 100; // 100px threshold
+      setShowScrollButton(!isAtBottom && messages.length > 0);
+    }
+  };
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
+  };
+
+  // Add scroll event listener to chat container
+  useEffect(() => {
+    const scrollContainer = listRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [messages.length]);
+
+  // Add global scroll event listener to detect scrolling anywhere on the page
+  useEffect(() => {
+    const handleGlobalScroll = () => {
+      if (listRef.current && messages.length > 0) {
+        handleScroll();
+      }
+    };
+
+    // Add scroll listener to window
+    window.addEventListener('scroll', handleGlobalScroll);
+    
+    // Also add wheel event listener for mouse wheel scrolling
+    window.addEventListener('wheel', handleGlobalScroll);
+    
+    // Add touch event listener for mobile scrolling
+    window.addEventListener('touchmove', handleGlobalScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', handleGlobalScroll);
+      window.removeEventListener('wheel', handleGlobalScroll);
+      window.removeEventListener('touchmove', handleGlobalScroll);
+    };
+  }, [messages.length]);
+
+  // Also check scroll position when messages change
+  useEffect(() => {
+    if (listRef.current && messages.length > 0) {
+      // Small delay to ensure DOM is updated
       setTimeout(() => {
-        listRef.current.scrollTop = listRef.current.scrollHeight;
+        handleScroll();
       }, 100);
+    }
+  }, [messages.length]);
+
+  // Periodic check for scroll position (fallback for hidden scrollbar issues)
+  useEffect(() => {
+    if (messages.length > 0) {
+      const interval = setInterval(() => {
+        if (listRef.current) {
+          handleScroll();
+        }
+      }, 500); // Check every 500ms
+
+      return () => clearInterval(interval);
+    }
+  }, [messages.length]);
+
+  // Only auto-scroll to bottom when user is already at the bottom (like ChatGPT)
+  useEffect(() => {
+    if (listRef.current && messages.length > 0) {
+      const { scrollTop, scrollHeight, clientHeight } = listRef.current;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 100;
+      
+      // Only auto-scroll if user is already at the bottom
+      if (isAtBottom) {
+        setTimeout(() => {
+          if (listRef.current) {
+            listRef.current.scrollTop = listRef.current.scrollHeight;
+          }
+        }, 50);
+      }
     }
   }, [messages, typing]);
 
@@ -149,6 +233,11 @@ const Chat = ({
     e.preventDefault();
     const question = input.trim();
     if (!question) return;
+    
+    // Check if user is at bottom before adding new message
+    const wasAtBottom = listRef.current ? 
+      (listRef.current.scrollTop + listRef.current.clientHeight >= listRef.current.scrollHeight - 100) : false;
+    
     const userMsg = { id: Date.now(), role: 'user', text: question };
     setMessages((m) => [...m, userMsg]);
     setInput('');
@@ -160,6 +249,15 @@ const Chat = ({
     // Add a placeholder message for the streaming response
     const assistantMsgId = Date.now() + 1;
     setMessages((m) => [...m, { id: assistantMsgId, role: 'assistant', text: '' }]);
+    
+    // If user was at bottom, scroll to show new messages, otherwise keep current position
+    if (wasAtBottom) {
+      setTimeout(() => {
+        if (listRef.current) {
+          listRef.current.scrollTop = listRef.current.scrollHeight;
+        }
+      }, 100);
+    }
     
     try {
       // Prepare conversation history for context
@@ -238,11 +336,27 @@ const Chat = ({
 
   return (
     <div className="block h-[calc(100vh-80px)] md:h-[calc(100vh-80px)] max-w-screen mx-0 px-0 md:px-4">
-      <div className="max-w-4xl mx-auto flex flex-col bg-neutral-900 border-0 rounded-none overflow-hidden shadow-none h-[calc(100vh-80px)] relative">
+      <div className="max-w-4xl mx-auto flex flex-col bg-neutral-900 border-0 rounded-none overflow-hidden shadow-none h-[calc(100vh-80px)] relative w-full">
         <div 
           className="flex-1 overflow-y-auto flex flex-col gap-4 md:gap-6 p-4 md:p-5 pb-20 md:pb-24 scroll-smooth max-h-none relative"
           ref={listRef}
         >
+          {/* Scroll to bottom button */}
+          {showScrollButton && (
+            <button
+              onClick={scrollToBottom}
+              className={`fixed bottom-24 right-6 z-50 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-110 ${
+                isDarkTheme 
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+              title="Scroll to bottom"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </button>
+          )}
           {/* Fixed Welcome Section in Center */}
           {messages.length === 0 && (
             <div className="absolute inset-0 flex flex-col items-center justify-center px-4 w-full pointer-events-none z-10">
@@ -254,7 +368,7 @@ const Chat = ({
           
           {messages.map((m) => (
             <div key={m.id} className={`flex flex-col gap-3 ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-              <div className={`max-w-[85%] px-5 py-4 rounded-3xl text-base leading-relaxed relative whitespace-pre-wrap break-words ${
+              <div className={`max-w-[85%] px-5 py-4 rounded-3xl text-base leading-relaxed relative break-words overflow-hidden ${
                 m.role === 'user' 
                   ? 'bg-blue-900 text-white rounded-br-md' 
                   : isDarkTheme 
@@ -266,7 +380,7 @@ const Chat = ({
                   <div>
                     {/* Render text before table */}
                     {m.text.split('<table')[0] && (
-                      <div className="text-base leading-relaxed mb-6">
+                      <div className="text-base leading-relaxed mb-6 message-content">
                         <ReactMarkdown 
                           components={{
                             a: CustomLink
@@ -287,7 +401,7 @@ const Chat = ({
                     
                     {/* Render text after table */}
                     {m.text.split('</table>')[1] && (
-                      <div className="text-base leading-relaxed mt-6">
+                      <div className="text-base leading-relaxed mt-6 message-content">
                         <ReactMarkdown 
                           components={{
                             a: CustomLink
@@ -299,7 +413,7 @@ const Chat = ({
                     )}
                   </div>
                 ) : (
-                  <div className="text-base leading-relaxed space-y-4">
+                  <div className="text-base leading-relaxed space-y-4 message-content">
                     <ReactMarkdown 
                       components={{
                         a: CustomLink

@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@layer utilities {
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 8s ease-in-out infinite;
+  }
+  .scrollbar-hidden {
+    /* Firefox */
+    scrollbar-width: none;
+    /* IE 10+ */
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    /* Chrome/Safari/WebKit */
+    display: none;
+  }
+}

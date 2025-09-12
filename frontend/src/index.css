@@ -24,19 +24,22 @@
 .message-content h3 {
   font-size: 1.15rem;
   font-weight: 600;
-  color: #374151;
+  color: #1e3da5;
   margin: 12px 0 6px;
 }
 
 .message-content h4 {
   font-size: 0.95rem;
-  color: #374151;
+  color: #1e3da5;
 }
 
 .message-content p {
   margin: 4px 0;
   line-height: 1.55;
   font-size: 1.1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .message-content ul {
@@ -48,6 +51,9 @@
   margin: 2px 0;
   line-height: 1.55;
   font-size: 1.08rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .message-content ol {
@@ -92,6 +98,20 @@
   text-decoration: underline;
 }
 
+/* Horizontal rule styling for section separators */
+.message-content hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+  margin: 24px 0;
+  border-radius: 1px;
+}
+
+/* Dark theme horizontal rule */
+.dark .message-content hr {
+  background: linear-gradient(90deg, transparent, #4b5563, transparent);
+}
+
 .external-link {
   color: #3b82f6;
   text-decoration: none;
@@ -116,21 +136,38 @@
 
 .dark .message-content h3,
 .dark .message-content h4 {
-  color: #d1d5db;
+  color: #60a5fa;
 }
 
 .dark .message-content a {
   color: #60a5fa;
 }
 
-/* Hide scrollbar but keep scrolling functionality */
+/* Custom scrollbar styling */
 .overflow-y-auto::-webkit-scrollbar {
-  display: none;
+  width: 6px;
 }
 
-.overflow-y-auto {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
+}
+
+/* Dark theme scrollbar */
+.dark .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.3);
+}
+
+.dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 85, 99, 0.5);
 }
 
 /* Hide scrollbar for horizontal scroll */
@@ -179,7 +216,6 @@
 .table-container tr:nth-child(even) td {
   background-color: #f9f9f9 !important;
 }
-
 .table-container tr:hover td {
   background-color: #f5f5f5 !important;
 }
@@ -222,4 +258,42 @@
 
 .bg-black .table-container a {
   color: #60a5fa !important;
+}
+
+/* Message container overflow fixes */
+.message-content {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.message-content * {
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Ensure all text elements wrap properly */
+.message-content p,
+.message-content div,
+.message-content span,
+.message-content strong,
+.message-content em {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Handle very long words that might still overflow */
+.message-content {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Specific handling for long URLs or technical terms */
+.message-content a {
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
