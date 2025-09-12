@@ -1,6 +1,6 @@
 export const API_BASE = import.meta.env.VITE_API_BASE || '/api';
 
-export async function askQuery(question, conversationHistory = []) {
+export async function askQuery(question, conversationHistory = [], onDelta) {
   const res = await fetch(`${API_BASE}/query`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -12,7 +12,9 @@ export async function askQuery(question, conversationHistory = []) {
   const reader = res.body?.getReader();
   if (!reader) {
     // Fallback to text if no stream
-    return res.text();
+    const text = await res.text();
+    if (onDelta) onDelta(text);
+    return text;
   }
 
   const decoder = new TextDecoder();
@@ -41,6 +43,7 @@ export async function askQuery(question, conversationHistory = []) {
           if (evt.fullResponse) finalFullResponse = evt.fullResponse;
         } else if (evt.content) {
           aggregated += evt.content;
+          if (onDelta) onDelta(evt.content);
         }
       } catch (_) {
         // ignore malformed chunks

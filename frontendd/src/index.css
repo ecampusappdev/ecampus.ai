@@ -21,3 +21,67 @@
     display: none;
   }
 }
+
+/* Table styling improvements */
+@layer components {
+  .chat-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+    font-family: Arial, sans-serif;
+    table-layout: fixed;
+  }
+  
+  .chat-table th,
+  .chat-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border: 1px solid #374151;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  
+  .chat-table th {
+    background-color: #1f2937;
+    font-weight: 600;
+    color: #f9fafb;
+  }
+  
+  .chat-table td {
+    background-color: #111827;
+    color: #e5e7eb;
+  }
+  
+  .chat-table tr:hover td {
+    background-color: #1f2937;
+  }
+}
+
+/* Dark theme color pass to match requested style */
+@layer components {
+  .chat-table {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-color: #374151 !important;
+  }
+  .chat-table th {
+    background-color: #059669 !important; /* emerald header */
+    color: #ffffff !important;
+    border-color: #374151 !important;
+  }
+  .chat-table td {
+    border-color: #374151 !important;
+    color: #ffffff !important;
+    background: #000000 !important;
+  }
+  .chat-table tr:nth-child(even) td {
+    background-color: #1a1a1a !important;
+  }
+  .chat-table tr:hover td {
+    background-color: #2a2a2a !important;
+  }
+  .chat-table a {
+    color: #60a5fa !important; /* blue links */
+  }
+}
