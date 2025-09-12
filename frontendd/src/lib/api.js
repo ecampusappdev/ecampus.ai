@@ -14,13 +14,14 @@ export async function askQuery(question, conversationHistory = [], onDelta) {
     // Fallback to text if no stream
     const text = await res.text();
     if (onDelta) onDelta(text);
-    return text;
+    return { fullResponse: text, followUpQuestions: [] };
   }
 
   const decoder = new TextDecoder();
   let buffer = '';
   let aggregated = '';
   let finalFullResponse = '';
+  let finalFollowUps = [];
 
   while (true) {
     const { value, done } = await reader.read();
@@ -39,8 +40,9 @@ export async function askQuery(question, conversationHistory = [], onDelta) {
       try {
         const evt = JSON.parse(jsonStr);
         if (evt.full) {
-          // Server signals final payload with fullResponse
+          // Server signals final payload with fullResponse and follow-ups
           if (evt.fullResponse) finalFullResponse = evt.fullResponse;
+          if (Array.isArray(evt.followUpQuestions)) finalFollowUps = evt.followUpQuestions;
         } else if (evt.content) {
           aggregated += evt.content;
           if (onDelta) onDelta(evt.content);
@@ -51,7 +53,8 @@ export async function askQuery(question, conversationHistory = [], onDelta) {
     }
   }
 
-  return finalFullResponse || aggregated.trim();
+  const finalText = finalFullResponse || aggregated.trim();
+  return { fullResponse: finalText, followUpQuestions: finalFollowUps };
 }
 
 export async function saveLead(payload) {

@@ -214,7 +214,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 
-const Chat = ({ onSubmit, isInChatMode = false }) => {
+const Chat = ({ onSubmit, isInChatMode = false, placeholder }) => {
   const [query, setQuery] = useState("");
   const textareaRef = useRef(null);
 
@@ -271,7 +271,7 @@ const Chat = ({ onSubmit, isInChatMode = false }) => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask anything..."
+            placeholder={placeholder || "Ask anything about universities, courses, fees..."}
             rows={1}
             className="flex-1 bg-transparent text-white placeholder-gray-400 outline-none text-sm md:text-base resize-none leading-6 py-1 md:py-1.5 min-h-[36px] md:min-h-[40px] max-h-28 md:max-h-32 overflow-y-auto scrollbar-hidden"
           />

@@ -7,6 +7,7 @@ const Home = () => {
   const [isChatActive, setIsChatActive] = useState(false);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestedPlaceholder, setSuggestedPlaceholder] = useState("");
   const messagesEndRef = useRef(null);
 
   // Scroll to bottom when new messages arrive
@@ -22,6 +23,9 @@ const Home = () => {
       .replace(/\n\s*---\s*\n/g, `\n${hr}\n`)
       .replace(/---/g, hr)
       .replace(/<hr[^>]*>/gi, hr); // normalize any hr to our hr
+
+    // Convert simple markdown bold **text** to HTML <strong>text</strong>
+    processed = processed.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
     // Collapse consecutive hrs into a single one
     processed = processed.replace(new RegExp(`(${hr}\n?){2,}`, 'g'), `${hr}\n`);
@@ -43,7 +47,7 @@ const Home = () => {
       const tempIndex = messages.length + 1; // after user message added in handleChatSubmit
       setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-      const finalResponse = await askQuery(queryText, conversationHistory, (delta) => {
+      const { fullResponse, followUpQuestions } = await askQuery(queryText, conversationHistory, (delta) => {
         // Append delta and update the last assistant message only, no auto scroll
         liveText += delta;
         const processedLive = processResponse(liveText);
@@ -56,12 +60,31 @@ const Home = () => {
       });
 
       // Ensure final processed content is set
-      const processedResponse = processResponse(finalResponse);
+      const processedResponse = processResponse(fullResponse);
       setMessages(prev => {
         const copy = [...prev];
         copy[copy.length - 1] = { role: 'assistant', content: processedResponse };
         return copy;
       });
+
+      // Prefer model-embedded follow-ups: extract first bullet after a follow-up heading; fallback to API followUpQuestions
+      try {
+        const text = fullResponse || '';
+        // Search for the first list item after a follow-up heading or a “Would you like me to:” block
+        const headingRegex = /(Follow-?up Questions|Here are some follow-?up questions[^:]*:|Would you like me to:)[\s\S]*?/i;
+        const match = text.match(headingRegex);
+        if (match) {
+          const tail = text.slice(text.indexOf(match[0]) + match[0].length);
+          const bulletMatch = tail.match(/\n\s*[•\-]\s*(.+)/);
+          if (bulletMatch && bulletMatch[1]) {
+            setSuggestedPlaceholder(bulletMatch[1].trim());
+          } else if (Array.isArray(followUpQuestions) && followUpQuestions.length > 0) {
+            setSuggestedPlaceholder(followUpQuestions[0]);
+          }
+        } else if (Array.isArray(followUpQuestions) && followUpQuestions.length > 0) {
+          setSuggestedPlaceholder(followUpQuestions[0]);
+        }
+      } catch (_) {}
     } catch (err) {
       console.error("Query failed", err);
       setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, something went wrong. Please try again.' }]);
@@ -83,6 +106,9 @@ const Home = () => {
   const handleBackToHome = () => {
     setIsChatActive(false);
     setMessages([]);
+    setSuggestedPlaceholder("");
+    // Force a full reload to reset any persisted UI state/placeholder
+    window.location.reload();
   };
 
   return (
@@ -97,7 +123,7 @@ const Home = () => {
                 Explore your best career path!!
               </h1>
               <div className='mt-6 md:mt-6'>
-                <Chat onSubmit={handleChatSubmit} />
+                <Chat onSubmit={handleChatSubmit} placeholder={suggestedPlaceholder} />
               </div>
             </div>
 
@@ -174,6 +200,7 @@ const Home = () => {
                   await handleQuery(query, messages);
                 }} 
                 isInChatMode={true}
+                placeholder={suggestedPlaceholder}
               />
             </div>
           </>

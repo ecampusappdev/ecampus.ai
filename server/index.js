@@ -105,6 +105,15 @@ app.post('/api/query', async (req, res) => {
 
 const systemPrompt = `You are an expert assistant for online university discovery in India. You provide comprehensive, helpful, and engaging responses about universities, courses, and educational opportunities.
 
+ONLINE-ONLY SCOPE (STRICT):
+- ONLY include universities/programs that grant ONLINE degrees (UGC-DEB/AICTE recognized Online mode).
+- EXCLUDE regular full-time ON-CAMPUS programs, offline-only programs, coaching, bootcamps, certificates/diplomas without a degree, and MOOCs that do not award a university degree.
+- If the user asks about regular/on-campus items, explicitly clarify and redirect to online degree equivalents only.
+
+FOLLOW-UPS POLICY (STRICT):
+- Do NOT include a follow-up section inside your response.
+- The application will append contextual follow-ups separately. Your output should end after the conclusion section.
+
 🚨 CRITICAL INSTRUCTION 🚨
 NEVER give simple, repetitive responses like "visit official websites" or "contact admissions office". Instead, provide detailed, structured information with specific data, examples, and actionable insights. Always include relevant information about multiple universities and options.
 
@@ -177,11 +186,6 @@ If the user's question contains words like "compare", "distinguish", "vs", "diff
 <hr class="my-6 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400" />
 
 
-4. **FOLLOW-UP QUESTIONS** (3-4 relevant questions):
-   • Ask about specific details they might want
-   • Suggest related topics or specializations
-   • Offer to help with next steps or comparisons
-
 IMPORTANT FORMATTING:
 - Use bullet points (•) for all paragraphic content within sections
 - Add EXACTLY ONE HTML horizontal line separator (<hr class="my-6 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400" />) between each major section
@@ -222,35 +226,8 @@ EXAMPLE RESPONSE STRUCTURE:
 </tbody>
 </table>
 
-These programs offer excellent opportunities for career advancement. Most are UGC-recognized and provide flexible learning options. Consider factors like accreditation, placement records, and your career goals when choosing.
+These programs offer excellent opportunities for career advancement. Most are UGC-recognized and provide flexible learning options. Consider factors like accreditation, placement records, and your career goals when choosing."
 
-Would you like me to:
-• Provide detailed information about specific MBA specializations (Finance, Marketing, HR, etc.)?
-• Compare fees and duration across different universities?
-• Explain the admission process for any particular program?
-• Suggest programs based on your specific career goals or location preferences?"
-
-SPECIFIC FOLLOW-UP QUESTION EXAMPLES BY TOPIC:
-
-For MBA Programs:
-• "Would you like me to provide detailed information about specific MBA specializations (Finance, Marketing, HR, Operations, etc.)?"
-• "Should I compare the admission requirements and entrance exams for these programs?"
-• "Would you like to know about the placement records and average salary packages?"
-• "Do you want me to suggest programs based on your work experience or career goals?"
-
-For Engineering Courses:
-• "Would you like me to provide detailed information about specific engineering branches (Computer Science, Mechanical, Civil, etc.)?"
-• "Should I compare the curriculum and practical training aspects of these programs?"
-• "Would you like to know about the industry partnerships and internship opportunities?"
-• "Do you want me to suggest programs based on your interest in specific technologies?"
-
-For Online Courses:
-• "Would you like me to provide detailed information about the learning platform and study materials?"
-• "Should I compare the flexibility and support services offered by these institutions?"
-• "Would you like to know about the examination pattern and certification process?"
-• "Do you want me to suggest courses based on your current educational background?"
-
-For Fee Structures:
 • "Would you like me to break down the fee structure and payment options for any specific program?"
 • "Should I compare the total cost including additional expenses like study materials and exams?"
 • "Would you like to know about scholarship opportunities and financial aid options?"
@@ -337,14 +314,7 @@ EXAMPLE OF CORRECT FORMAT WITH SEPARATORS:
 <hr class="my-6 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400" />
 
 **Entrance Exam:**
-• Qualifying scores in NMAT, CAT, GMAT, or equivalent exams
-
-<hr class="my-6 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400" />
-
-Would you like me to:
-• Provide more details on specific entrance exams?
-• Explain the interview process in detail?
-• Compare admission requirements across different universities?"`;
+• Qualifying scores in NMAT, CAT, GMAT, or equivalent exams"`;
 
 
     const userPrompt = `User question: ${question}`;
@@ -368,12 +338,17 @@ Would you like me to:
         });
 
         const followUpText = followUpCompletion.choices[0].message.content.trim();
-        const questions = followUpText.split('\n').filter(q => q.trim()).map(q => q.trim());
-        
-        return questions.length > 0 ? questions[0] : 'Ask a follow-up question...';
+        const questions = followUpText
+          .split('\n')
+          .map(q => q.replace(/^[-•\d\.\)\s]+/, ''))
+          .map(q => q.trim())
+          .filter(q => q.length > 0)
+          .slice(0, 3);
+
+        return questions.length > 0 ? questions : ['Ask a follow-up question...'];
       } catch (error) {
         console.error('Error generating follow-up questions:', error);
-        return 'Ask a follow-up question...';
+        return ['Ask a follow-up question...'];
       }
     }
 
@@ -501,6 +476,62 @@ Would you like me to:
       }
     }
 
+    // Collapse follow-up sections: keep only the first follow-up block (any heading variant), remove the rest
+    function stripModelFollowUps(response) {
+      try {
+        let out = response;
+
+        // Normalize for matching
+        const normalize = (s) =>
+          s
+            .replace(/[\u2010-\u2015]/g, '-')
+            .replace(/[\u2018\u2019]/g, "'")
+            .replace(/[\u201C\u201D]/g, '"');
+
+        const sepRegex = /\n\n(?:---|<hr[^>]*>)\n\n/i;
+        const variants = [
+          /\*\*?Follow-?up Questions\*\*?:?/i,
+          /Here\s+are\s+some\s+follow-?up\s+questions[^:]*:/i,
+          /Would\s+you\s+like\s+me\s+to:/i
+        ];
+
+        const n = normalize(out);
+        // Find all starts
+        const starts = [];
+        for (const v of variants) {
+          let m;
+          const r = new RegExp(v.source, v.flags + (v.flags.includes('g') ? '' : 'g'));
+          while ((m = r.exec(n)) !== null) {
+            starts.push(m.index);
+          }
+        }
+        if (starts.length === 0) return out;
+        const first = Math.min(...starts);
+
+        // Find end of first block: next separator after first start, else end
+        let endIndex = n.length;
+        const after = n.slice(first + 1);
+        const sepMatch = after.match(sepRegex);
+        if (sepMatch) {
+          endIndex = first + 1 + sepMatch.index; // cut before the next section
+        }
+
+        const head = out.slice(0, first).trimEnd();
+        const block = out.slice(first, endIndex).trim();
+        // Reconstruct: content up to first heading + one block only + remainder AFTER the block's next section (if any)
+        let tail = '';
+        if (sepMatch) {
+          tail = out.slice(first + 1 + sepMatch.index); // keep rest after the next separator
+        }
+        const needsSeparator = !/\n\n---\n\n\s*$/m.test(head);
+        const sep = needsSeparator ? '\n\n---\n\n' : '';
+        out = `${head}${sep}${block}${tail ? '' : ''}`.trim();
+        return out;
+      } catch (_) {
+        return response;
+      }
+    }
+
     // Build messages array with conversation history
     console.log('Conversation History:', conversationHistory.length, 'messages');
     const messages = [
@@ -539,15 +570,21 @@ Would you like me to:
         
         // Clean up the table response to remove empty columns
         const cleanedResponse = cleanTableResponse(responseWithSeparators);
+
+        // Keep any follow-up sections produced by the model itself
+        const sanitizedResponse = cleanedResponse;
         
         // Generate follow-up questions using AI
-        const followUpQuestion = await generateFollowUpQuestions(cleanedResponse);
-        
+        const followUpQuestions = await generateFollowUpQuestions(sanitizedResponse);
+
+        // Do not append our own follow-up section; only return the model's content
+        let finalResponseToSend = sanitizedResponse;
+
         res.write(`data: ${JSON.stringify({ 
           content: '', 
           full: true, 
-          fullResponse: cleanedResponse,
-          followUpQuestion: followUpQuestion
+          fullResponse: finalResponseToSend,
+          followUpQuestions: followUpQuestions
         })}\n\n`);
     res.end();
   } catch (error) {
