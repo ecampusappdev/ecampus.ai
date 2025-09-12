@@ -265,7 +265,7 @@ const Chat = ({ onSubmit, isInChatMode = false }) => {
     <div className={`w-full flex flex-col items-center gap-4 ${isInChatMode ? 'max-w-4xl mx-auto px-2' : 'max-w-xl'}`}>
       {/* Input */}
       <form onSubmit={handleSubmit} className="relative w-full">
-        <div className="relative bg-neutral-900 rounded-[10px] px-3 py-2 border border-blue-900 focus-within:border-blue-400 transition-all duration-200 flex items-end">
+        <div className="relative mt-3 bg-neutral-900 rounded-[10px] px-3 py-2 border border-blue-900 focus-within:border-blue-400 transition-all duration-200 flex items-end">
           <textarea
             ref={textareaRef}
             value={query}
