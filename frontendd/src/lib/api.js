@@ -71,3 +71,20 @@ export async function health() {
   const res = await fetch(`/health`);
   return res.json();
 }
+
+export async function submitFeedback({ sentiment, message, question, conversationHistory, meta }) {
+  const res = await fetch(`${API_BASE}/feedback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sentiment, message, question, conversationHistory, meta })
+  });
+  if (!res.ok) throw new Error('Failed to submit feedback');
+  return res.json();
+}
+
+export async function fetchFeedbackStats(message) {
+  const params = new URLSearchParams({ message });
+  const res = await fetch(`${API_BASE}/feedback/stats?${params.toString()}`);
+  if (!res.ok) throw new Error('Failed to fetch stats');
+  return res.json();
+}

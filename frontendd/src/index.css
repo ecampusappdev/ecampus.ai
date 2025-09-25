@@ -58,6 +58,19 @@
   }
 }
 
+/* Ensure assistant message lists render with proper spacing */
+@layer components {
+  .chat-message ul {
+    list-style: disc;
+    margin: 6px 0 10px;
+    padding-left: 1.25rem;
+  }
+  .chat-message li {
+    margin: 3px 0;
+    line-height: 1.55;
+  }
+}
+
 /* Dark theme color pass to match requested style */
 @layer components {
   .chat-table {
@@ -66,7 +79,7 @@
     border-color: #374151 !important;
   }
   .chat-table th {
-    background-color: #059669 !important; /* emerald header */
+    background-color: #4ccfa679 !important; /* emerald header */
     color: #ffffff !important;
     border-color: #374151 !important;
   }
