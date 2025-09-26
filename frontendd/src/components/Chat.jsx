@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 
-const Chat = ({ onSubmit, isInChatMode = false, placeholder }) => {
+const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder }) => {
   const [query, setQuery] = useState("");
   const textareaRef = useRef(null);
 

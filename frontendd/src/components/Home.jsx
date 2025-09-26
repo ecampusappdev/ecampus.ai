@@ -212,7 +212,6 @@
 
 // export default Home;
 
-
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -220,12 +219,18 @@ import Chat from './Chat';
 import UniversitySlider from './universitySlider';
 import { askQuery } from "../lib/api";
 import { submitFeedback, fetchFeedbackStats } from "../lib/api";
+import Sidebar from './Sidebar';
 
-const Home = () => {
-  const [isChatActive, setIsChatActive] = useState(false);
+import { useLocation, useNavigate } from 'react-router-dom';
+
+const Home = ({ __forceChatMode = false }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [isChatActive, setIsChatActive] = useState(__forceChatMode);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [suggestedPlaceholder, setSuggestedPlaceholder] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const messagesEndRef = useRef(null);
   const [feedbackMap, setFeedbackMap] = useState({}); // { [index]: 'up' | 'down' }
   const [finalizedMap, setFinalizedMap] = useState({}); // { [index]: true when streaming finished }
@@ -371,226 +376,249 @@ const Home = () => {
     setIsChatActive(false);
     setMessages([]);
     setSuggestedPlaceholder("");
-    window.location.reload();
+    navigate('/');
   };
 
+  // If navigated from ChatArea with an initial query, run it once
+  useEffect(() => {
+    if (__forceChatMode && location?.state?.initialQuery) {
+      const q = String(location.state.initialQuery || '').trim();
+      if (q) {
+        // Clear state so it doesn't retrigger on re-render
+        history.replaceState({}, '');
+        (async () => {
+          const userMessage = { role: 'user', content: q };
+          setMessages([userMessage]);
+          setIsChatActive(true);
+          await handleQuery(q, []);
+        })();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [__forceChatMode]);
+
   return (
-    <div className="h-screen bg-black flex flex-col items-center justify-center p-2 md:p-4 lg:p-6 overflow-hidden">
-      <div className={`w-full h-[95vh] bg-gradient-to-r from-[#434343] to-[#000000] rounded-[20px] flex flex-col items-center px-3 md:px-4 ${isChatActive ? 'pb-3' : 'pb-10 md:pb-14'} animate-gradient-x`}>
+    <div className="h-full bg-black">
+      {/* Main content area (sidebar is now provided by Layout) */}
+      <div className="h-full bg-black overflow-hidden">
+        <div className="h-full flex flex-col items-center justify-center p-2 md:p-4 lg:p-6">
+          <div className={`w-full h-[95vh] bg-neutral-800 rounded-[20px] flex flex-col items-center px-3 md:px-4 transition-all duration-300 ${isChatActive ? 'pb-3' : 'pb-10 md:pb-14'}`}>
 
-        {!isChatActive ? (
-          <>
-            <div className="flex-1 w-full flex flex-col items-center justify-center">
-              <h1 className="text-white/75 text-2xl md:text-4xl font-semibold tracking-tight text-center mb-6">
-                Explore your best career path!!
-              </h1>
-              <div className='mt-4'>
-                <Chat onSubmit={handleChatSubmit} placeholder={suggestedPlaceholder} />
+        {!isChatActive && !__forceChatMode ? (
+            <>
+              <div className="flex-1 w-full flex flex-col items-center justify-center">
+                <h1 className="text-white/75 text-2xl md:text-4xl font-semibold tracking-tight text-center mb-6">
+                  Explore your best career path!!
+                </h1>
+                <div className='mt-4'>
+                  <Chat onSubmit={handleChatSubmit} placeholder={suggestedPlaceholder} />
+                </div>
               </div>
-            </div>
 
-            <div className="mt-auto w-full pb-4 md:pb-6">
-              <UniversitySlider/>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Header */}
-            <div className="w-full flex items-center justify-between py-2 md:py-3">
-              <button
-                onClick={handleBackToHome}
-                className="flex items-center space-x-2 text-white/70 hover:text-white transition-colors"
-              >
-                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                <span className="text-sm">Back to Home</span>
-              </button>
-              <h1 className="text-white/80 text-sm md:text-lg font-semibold">Career Guidance Chat</h1>
-              <div className="flex items-center">
-               
+              <div className="mt-auto w-full pb-4 md:pb-6">
+                <UniversitySlider/>
               </div>
-            </div>
+            </>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="w-full flex items-center justify-between py-2 md:py-3">
+                <button
+                  onClick={handleBackToHome}
+                  className="flex items-center space-x-2 text-white/70 hover:text-white transition-colors"
+                >
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span className="text-sm">Back to Home</span>
+                </button>
+                <h1 className="text-white/80 text-sm md:text-lg font-semibold">Career Guidance Chat</h1>
+                <div className="flex items-center">
+                 
+                </div>
+              </div>
 
-            {/* Chat messages */}
-            <div ref={scrollContainerRef} className="flex-1 w-full flex justify-center overflow-y-auto scrollbar-hidden py-2 min-h-0">
-              <div className="w-full max-w-4xl px-2 md:px-3 space-y-2">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
+              {/* Chat messages */}
+              <div ref={scrollContainerRef} className="flex-1 w-full flex justify-center overflow-y-auto scrollbar-hidden py-2 min-h-0">
+                <div className="w-full max-w-4xl px-2 md:px-3 space-y-2">
+                  {messages.map((message, index) => (
                     <div
-                      className={`rounded-lg md:rounded-xl text-sm md:text-base leading-relaxed ${
-                        message.role === 'user'
-                          ? 'max-w-[85%] px-3 md:px-3.5 py-1.5 md:py-2.5 my-3 md:my-5 bg-slate-500 text-white'
-                          : 'max-w-full p-0 bg-transparent text-white/90 border-0 chat-message rounded-none'
-                      }`}
-                      style={{ overflowX: message.role !== 'user' ? 'auto' : 'hidden' }}
-                      classNameGroup
-                      data-message-index={index}
+                      key={index}
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div className="prose prose-invert max-w-none overflow-x-auto scrollbar-hidden">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            table: ({ node, ...props }) => (
-                              <table
-                                className={`border-collapse table-fixed w-full mb-6 ${condensedMap[index] ? 'text-[12px] md:text-[13px]' : 'text-[14px] md:text-[15px]'}`}
-                                {...props}
-                              />
-                            ),
-                            th: ({ node, ...props }) => (
-                              <th
-                                className={`border bg-black-500 border-white/20 ${condensedMap[index] ? 'px-2 py-1' : 'px-3 py-2'} text-left break-words whitespace-normal`}
-                                {...props}
-                              />
-                            ),
-                            td: ({ node, ...props }) => (
-                              <td
-                                className={`border border-white/10 ${condensedMap[index] ? 'px-2 py-1' : 'px-3 py-2'} align-top break-words whitespace-normal`}
-                                {...props}
-                              />
-                            ),
-                            thead: ({ node, ...props }) => (
-                              <thead className="bg-white/5" {...props} />
-                            ),
-                            h1: ({ node, ...props }) => (
-                              <h1 className="text-2xl md:text-3xl font-bold mb-4 mt-6" {...props} />
-                            ),
-                            h2: ({ node, ...props }) => (
-                              <h2 className="text-xl md:text-2xl font-bold mb-3 mt-5" {...props} />
-                            ),
-                            h3: ({ node, ...props }) => (
-                              <h3 className="text-lg md:text-xl font-semibold mb-3 mt-4" {...props} />
-                            ),
-                            p: ({ node, ...props }) => (
-                              <p className="mb-1" {...props} />
-                            ),
-                            ul: ({ node, ...props }) => (
-                              <ul className="mb-4" {...props} />
-                            ),
-                            ol: ({ node, ...props }) => (
-                              <ol className="mb-4" {...props} />
-                            )
-                          }}
-                        >
-{message.content}
-                        </ReactMarkdown>
-                      </div>
-                      {message.role !== 'user' && message.content && finalizedMap[index] && (
-                        <div className="mt-1 flex items-center justify-end gap-1">
-                          <button
-                            aria-label="Copy response"
-                            className="cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/80"
-                            onClick={() => {
-                              navigator.clipboard.writeText(message.content);
-                              setCopiedMap(prev => ({ ...prev, [index]: true }));
-                              setTimeout(() => {
-                                setCopiedMap(prev => ({ ...prev, [index]: false }));
-                              }, 2000);
+                      <div
+                        className={`rounded-lg md:rounded-xl text-sm md:text-base leading-relaxed ${
+                          message.role === 'user'
+                            ? 'max-w-[85%] px-3 md:px-3.5 py-1.5 md:py-2.5 my-3 md:my-5 bg-slate-500 text-white'
+                            : 'max-w-full p-0 bg-transparent text-white/90 border-0 chat-message rounded-none'
+                        }`}
+                        style={{ overflowX: message.role !== 'user' ? 'auto' : 'hidden' }}
+                        classNameGroup
+                        data-message-index={index}
+                      >
+                        <div className="prose prose-invert max-w-none overflow-x-auto scrollbar-hidden">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              table: ({ node, ...props }) => (
+                                <table
+                                  className={`border-collapse table-fixed w-full mb-6 ${condensedMap[index] ? 'text-[12px] md:text-[13px]' : 'text-[14px] md:text-[15px]'}`}
+                                  {...props}
+                                />
+                              ),
+                              th: ({ node, ...props }) => (
+                                <th
+                                  className={`border bg-black-500 border-white/20 ${condensedMap[index] ? 'px-2 py-1' : 'px-3 py-2'} text-left break-words whitespace-normal`}
+                                  {...props}
+                                />
+                              ),
+                              td: ({ node, ...props }) => (
+                                <td
+                                  className={`border border-white/10 ${condensedMap[index] ? 'px-2 py-1' : 'px-3 py-2'} align-top break-words whitespace-normal`}
+                                  {...props}
+                                />
+                              ),
+                              thead: ({ node, ...props }) => (
+                                <thead className="bg-white/5" {...props} />
+                              ),
+                              h1: ({ node, ...props }) => (
+                                <h1 className="text-2xl md:text-3xl font-bold mb-4 mt-6" {...props} />
+                              ),
+                              h2: ({ node, ...props }) => (
+                                <h2 className="text-xl md:text-2xl font-bold mb-3 mt-5" {...props} />
+                              ),
+                              h3: ({ node, ...props }) => (
+                                <h3 className="text-lg md:text-xl font-semibold mb-3 mt-4" {...props} />
+                              ),
+                              p: ({ node, ...props }) => (
+                                <p className="mb-1" {...props} />
+                              ),
+                              ul: ({ node, ...props }) => (
+                                <ul className="mb-4" {...props} />
+                              ),
+                              ol: ({ node, ...props }) => (
+                                <ol className="mb-4" {...props} />
+                              )
                             }}
                           >
-                            {copiedMap[index] ? (
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                              </svg>
-                            ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                              </svg>
-                            )}
-                          </button>
-                          <button
-                            aria-label="Like this answer"
-                            className="cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/80"
-                            onClick={async () => {
-                              console.log('Like button clicked for index:', index);
-                              const newSentiment = feedbackMap[index] === 'up' ? null : 'up';
-                              setFeedbackMap(prev => ({ ...prev, [index]: newSentiment }));
-                              try {
-                                const r = await submitFeedback({
-                                  sentiment: newSentiment || 'neutral',
-                                  message: message.content,
-                                  question: messages.find(m => m.role === 'user')?.content,
-                                  conversationHistory: messages,
-                                  meta: { index }
-                                });
-                                console.log('Feedback submitted successfully:', r);
-                              } catch (e) { 
-                                console.error('Feedback submission error:', e);
-                              }
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={feedbackMap[index] === 'up' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={`w-4 h-4 ${feedbackMap[index] === 'up' ? 'text-white' : 'text-white/80'}`}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21h-3A1.5 1.5 0 0 1 3 19.5v-7A1.5 1.5 0 0 1 4.5 11h3V21Zm3-10.5 3.75-6.5a1.5 1.5 0 0 1 2.63 1.5L15.75 9h3.38a1.5 1.5 0 0 1 1.48 1.74l-1.2 7.2A2.25 2.25 0 0 1 17.17 20H10.5V10.5Z" />
-                            </svg>
-                          </button>
-                          <span className="text-xs text-white/50" data-feedback-up-count></span>
-                          <button
-                            aria-label="Dislike this answer"
-                            className="cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/80"
-                            onClick={async () => {
-                              console.log('Dislike button clicked for index:', index);
-                              const newSentiment = feedbackMap[index] === 'down' ? null : 'down';
-                              setFeedbackMap(prev => ({ ...prev, [index]: newSentiment }));
-                              try {
-                                const r = await submitFeedback({
-                                  sentiment: newSentiment || 'neutral',
-                                  message: message.content,
-                                  question: messages.find(m => m.role === 'user')?.content,
-                                  conversationHistory: messages,
-                                  meta: { index }
-                                });
-                                console.log('Feedback submitted successfully:', r);
-                              } catch (e) { 
-                                console.error('Feedback submission error:', e);
-                              }
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={feedbackMap[index] === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={`w-4 h-4 rotate-180 ${feedbackMap[index] === 'down' ? 'text-white' : 'text-white/80'}`}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21h-3A1.5 1.5 0 0 1 3 19.5v-7A1.5 1.5 0 0 1 4.5 11h3V21Zm3-10.5 3.75-6.5a1.5 1.5 0 0 1 2.63 1.5L15.75 9h3.38a1.5 1.5 0 0 1 1.48 1.74l-1.2 7.2A2.25 2.25 0 0 1 17.17 20H10.5V10.5Z" />
-                            </svg>
-                          </button>
-                          <span className="text-xs text-white/50" data-feedback-down-count></span>
+  {message.content}
+                          </ReactMarkdown>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="bg-neutral-800 text-white/90 border border-white/10 rounded-lg md:rounded-xl px-3 py-2">
-                      <div className="flex items-center space-x-2">
-                        <div className="flex space-x-1">
-                          <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce"></div>
-                          <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                          <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                        </div>
-                        <span className="text-sm">Thinking...</span>
+                        {message.role !== 'user' && message.content && finalizedMap[index] && (
+                          <div className="mt-1 flex items-center justify-end gap-1">
+                            <button
+                              aria-label="Copy response"
+                              className="cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/80"
+                              onClick={() => {
+                                navigator.clipboard.writeText(message.content);
+                                setCopiedMap(prev => ({ ...prev, [index]: true }));
+                                setTimeout(() => {
+                                  setCopiedMap(prev => ({ ...prev, [index]: false }));
+                                }, 2000);
+                              }}
+                            >
+                              {copiedMap[index] ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                              )}
+                            </button>
+                            <button
+                              aria-label="Like this answer"
+                              className="cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/80"
+                              onClick={async () => {
+                                console.log('Like button clicked for index:', index);
+                                const newSentiment = feedbackMap[index] === 'up' ? null : 'up';
+                                setFeedbackMap(prev => ({ ...prev, [index]: newSentiment }));
+                                try {
+                                  const r = await submitFeedback({
+                                    sentiment: newSentiment || 'neutral',
+                                    message: message.content,
+                                    question: messages.find(m => m.role === 'user')?.content,
+                                    conversationHistory: messages,
+                                    meta: { index }
+                                  });
+                                  console.log('Feedback submitted successfully:', r);
+                                } catch (e) { 
+                                  console.error('Feedback submission error:', e);
+                                }
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={feedbackMap[index] === 'up' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={`w-4 h-4 ${feedbackMap[index] === 'up' ? 'text-white' : 'text-white/80'}`}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21h-3A1.5 1.5 0 0 1 3 19.5v-7A1.5 1.5 0 0 1 4.5 11h3V21Zm3-10.5 3.75-6.5a1.5 1.5 0 0 1 2.63 1.5L15.75 9h3.38a1.5 1.5 0 0 1 1.48 1.74l-1.2 7.2A2.25 2.25 0 0 1 17.17 20H10.5V10.5Z" />
+                              </svg>
+                            </button>
+                            <span className="text-xs text-white/50" data-feedback-up-count></span>
+                            <button
+                              aria-label="Dislike this answer"
+                              className="cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/80"
+                              onClick={async () => {
+                                console.log('Dislike button clicked for index:', index);
+                                const newSentiment = feedbackMap[index] === 'down' ? null : 'down';
+                                setFeedbackMap(prev => ({ ...prev, [index]: newSentiment }));
+                                try {
+                                  const r = await submitFeedback({
+                                    sentiment: newSentiment || 'neutral',
+                                    message: message.content,
+                                    question: messages.find(m => m.role === 'user')?.content,
+                                    conversationHistory: messages,
+                                    meta: { index }
+                                  });
+                                  console.log('Feedback submitted successfully:', r);
+                                } catch (e) { 
+                                  console.error('Feedback submission error:', e);
+                                }
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={feedbackMap[index] === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={`w-4 h-4 rotate-180 ${feedbackMap[index] === 'down' ? 'text-white' : 'text-white/80'}`}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21h-3A1.5 1.5 0 0 1 3 19.5v-7A1.5 1.5 0 0 1 4.5 11h3V21Zm3-10.5 3.75-6.5a1.5 1.5 0 0 1 2.63 1.5L15.75 9h3.38a1.5 1.5 0 0 1 1.48 1.74l-1.2 7.2A2.25 2.25 0 0 1 17.17 20H10.5V10.5Z" />
+                              </svg>
+                            </button>
+                            <span className="text-xs text-white/50" data-feedback-down-count></span>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
+                  ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-neutral-800 text-white/90 border border-white/10 rounded-lg md:rounded-xl px-3 py-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="flex space-x-1">
+                            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce"></div>
+                            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                          </div>
+                          <span className="text-sm">Thinking...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
               </div>
-            </div>
 
-            {/* Input */}
-            <div className="w-full flex-shrink-0 pt-1 pb-1">
-              <Chat 
-                onSubmit={async (query) => {
-                  const userMessage = { role: 'user', content: query };
-                  setMessages(prev => [...prev, userMessage]);
-                  await handleQuery(query, messages);
-                }} 
-                isInChatMode={true}
-                placeholder={suggestedPlaceholder}
-              />
-            </div>
-          </>
-        )}
-      </div>      
+              {/* Input */}
+              <div className="w-full flex-shrink-0 pt-1 pb-1">
+                <Chat 
+                  onSubmit={async (query) => {
+                    const userMessage = { role: 'user', content: query };
+                    setMessages(prev => [...prev, userMessage]);
+                    await handleQuery(query, messages);
+                  }} 
+                  isInChatMode={true}
+                  placeholder={suggestedPlaceholder}
+                />
+              </div>
+            </>
+          )}
+          </div>      
+        </div>
+      </div>
     </div>
   );
 };
