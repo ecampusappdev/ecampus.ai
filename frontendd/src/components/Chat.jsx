@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 
-const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder }) => {
+const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMode = true }) => {
   const [query, setQuery] = useState("");
   const textareaRef = useRef(null);
 
@@ -53,7 +53,11 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder }) => {
     <div className={`w-full flex flex-col items-center gap-4 ${isInChatMode ? 'max-w-4xl mx-auto px-2' : 'max-w-xl'}`}>
       {/* Input */}
       <form onSubmit={handleSubmit} className="relative w-full">
-        <div className="relative mt-3 bg-neutral-900 rounded-[10px] px-3 py-2 border border-blue-900 focus-within:border-blue-400 transition-all duration-200 flex items-end">
+        <div className={`relative mt-3 rounded-[10px] px-3 py-2 border transition-all duration-300 flex items-end ${
+          isDarkMode 
+            ? 'bg-neutral-900 border-blue-900 focus-within:border-blue-400' 
+            : 'bg-gray-200 border-gray-400 focus-within:border-blue-800'
+        }`}>
           <textarea
             ref={textareaRef}
             value={query}
@@ -61,7 +65,11 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder }) => {
             onKeyDown={handleKeyDown}
             placeholder={placeholder || "Ask anything about universities, courses, fees..."}
             rows={1}
-            className="flex-1 bg-transparent text-white placeholder-gray-400 outline-none text-sm md:text-base resize-none leading-6 py-1 md:py-1.5 min-h-[32px] md:min-h-[40px] max-h-28 md:max-h-32 overflow-y-auto scrollbar-hidden"
+            className={`flex-1 bg-transparent outline-none text-sm md:text-base resize-none leading-6 py-1 md:py-1.5 min-h-[32px] md:min-h-[40px] max-h-28 md:max-h-32 overflow-y-auto scrollbar-hidden transition-colors duration-300 ${
+              isDarkMode 
+                ? 'text-white placeholder-gray-400' 
+                : 'text-gray-800 placeholder-gray-500'
+            }`}
           />
 
           <button
@@ -93,7 +101,11 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder }) => {
             <button
               key={i}
               onClick={() => handleSuggestionClick(s)}
-              className="px-3 md:px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white text-xs md:text-sm rounded-full shadow-md transition"
+              className={`px-3 md:px-4 py-1.5 text-xs md:text-sm rounded-full shadow-md transition-colors duration-300 ${
+                isDarkMode 
+                  ? 'bg-neutral-800 hover:bg-neutral-700 text-white' 
+                  : 'bg-gray-200 hover:bg-gray-400 text-gray-800'
+              }`}
             >
               {s}
             </button>

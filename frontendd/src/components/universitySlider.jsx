@@ -131,16 +131,35 @@
 // export default UniversitySlider;
 
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Slider from "react-slick";
 import { motion } from "framer-motion";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import tiss from "/tiss.png";
-import symbiosis from "/symbiosis.png";
 import manipal from "/manipal.png";
-
+import dypatil from "../assets/dypatil.png";
+import mangalayatan from "../assets/mangalayatan.png"
 const UniversitySlider = () => {
+  // Initialize theme from localStorage immediately to prevent flash
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme ? savedTheme === 'dark' : true; // Default to dark if no preference
+  });
+
+  useEffect(() => {
+    // Listen for theme changes
+    const handleThemeChange = (event) => {
+      setIsDarkMode(event.detail.isDarkMode);
+    };
+
+    window.addEventListener('themeChanged', handleThemeChange);
+    
+    // Theme is already initialized in useState, no need to load again
+
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange);
+    };
+  }, []);
   const items = [
     {
       id: 1,
@@ -162,9 +181,9 @@ const UniversitySlider = () => {
     },
     {
       id: 3,
-      name: "Symbiosis",
-      logo: symbiosis,
-      website: "https://www.symbiosis.ac.in/",
+      name: "mangalayatan university",
+      logo: mangalayatan,
+      website: "https://www.muonline.ac.in/",
       courses: "12+ Courses",
       students: "18k+ Students",
       teachers: "20+ Teachers",
@@ -180,9 +199,9 @@ const UniversitySlider = () => {
     },
     {
       id: 5,
-      name: "TISS",
-      logo: tiss,
-      website: "https://www.tiss.edu/",
+      name: "DY Patil University",
+      logo: dypatil,
+      website: "https://www.dypatiledu.com/dypatil-university-online-education-mba-cta?source=DYPatil&media=IGAW&campaign=S-BRND-D&utm_source=Google&utm_Medium=Search&utm_campaign=15590069933&utm_adgroup=128498308502&utm_term=Dy%20patil%20online&utm_device=c&match_type=p&city=9184819&state=&gad_source=1&gad_campaignid=15590069933&gbraid=0AAAAAoOHAZOBR_kSHmV7HRHZoukm82s8y&gclid=CjwKCAjwlt7GBhAvEiwAKal0cn1VhdTGj-mefvEfb7DnrzLUOeuPfzKK4gwaTr9d_QJ2UmGUZalNZBoCezAQAvD_BwE#",
       courses: "9+ Courses",
       students: "10k+ Students",
       teachers: "12+ Teachers",
@@ -212,7 +231,9 @@ const UniversitySlider = () => {
       <Slider {...settings}>
         {items.map((item) => (
           <div key={item.id} className="px-2">
-            <div className="relative group bg-neutral-900 shadow-lg rounded-xl overflow-hidden h-32">
+            <div className={`relative group shadow-lg rounded-xl overflow-hidden h-32 transition-colors duration-300 ${
+              isDarkMode ? 'bg-neutral-900' : 'bg-gray-300'
+            }`}>
               {/* Logo */}
               <img
                 src={item.logo}
@@ -225,7 +246,9 @@ const UniversitySlider = () => {
               />
               
               {/* Fallback text if logo fails to load */}
-              <div className="h-full w-full flex items-center justify-center text-white text-sm font-medium" style={{display: 'none'}}>
+              <div className={`h-full w-full flex items-center justify-center text-sm font-medium transition-colors duration-300 ${
+                isDarkMode ? 'text-white' : 'text-gray-800'
+              }`} style={{display: 'none'}}>
                 {item.name}
               </div>
 

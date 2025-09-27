@@ -96,8 +96,9 @@
 // export default Sidebar;
 
 
-import React, { useState } from 'react';
-import ecampus from '../assets/ecampus.png';
+import React, { useState, useEffect } from 'react';
+import ecampuss from '../assets/ecampuss.png';
+import ecampus_logo from '../assets/ecampus_logo.png';
 
 // Sidebar with pure black background - no inner gradient panel
 // - Collapsible via toggle button (hamburger)
@@ -106,6 +107,11 @@ import ecampus from '../assets/ecampus.png';
 
 const Sidebar = ({ initialCollapsed = false, onToggle }) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
+  // Initialize theme from localStorage immediately to prevent flash
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme ? savedTheme === 'dark' : true; // Default to dark if no preference
+  });
 
   const handleToggle = () => {
     const next = !collapsed;
@@ -113,25 +119,66 @@ const Sidebar = ({ initialCollapsed = false, onToggle }) => {
     if (typeof onToggle === 'function') onToggle(next);
   };
 
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    
+    // Apply theme to document
+    if (newTheme) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+    
+    // Store preference in localStorage
+    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+    
+    // Dispatch custom event for other components to listen to
+    window.dispatchEvent(new CustomEvent('themeChanged', {
+      detail: { isDarkMode: newTheme }
+    }));
+  };
+
+  useEffect(() => {
+    // Apply theme to document immediately since state is already initialized
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
   return (
-    <div className={`h-full flex-shrink-0 transition-[width] duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
-      {/* Pure black sidebar container */}
-      <div className="h-full w-full bg-black relative">
+    <div className={`h-full flex-shrink-0 transition-[width] duration-300 shadow-2xl shadow-gray-900 ${collapsed ? 'w-18' : 'w-64'}`}>
+      {/* Sidebar container */}
+      <div className={`h-full w-full relative transition-colors duration-300 ${
+        isDarkMode ? 'bg-black' : 'bg-gray-200'
+      }`}>
         {/* Top branding + independent toggle */}
         <div className="absolute top-2 left-3 right-3 flex items-center justify-between pt-2">
           {collapsed ? (
             // collapsed: one button with just the logo (acts as open)
-            <button aria-label="Open sidebar" onClick={handleToggle} className="inline-flex items-center justify-center w-12 h-12 rounded-lg hover:bg-white/20">
-              <img src={ecampus} alt="ecampus" className="w-8 h-8 object-contain" />
+            <button aria-label="Open sidebar" onClick={handleToggle} className="inline-flex items-center mt-2 justify-center w-10 h-10 rounded-lg hover:bg-white/20">
+              <img src={ecampuss} alt="ecampus" className="w-10 h-10 object-contain" />
             </button>
           ) : (
             // expanded: static logo + text on the left, separate close button on right
             <>
               <div className="inline-flex items-center gap-2 px-1 h-12">
-                <img src={ecampus} alt="ecampus" className="w-8 h-8 object-contain" />
-                <span className="text-white font-semibold tracking-tight text-lg">Ecampus</span>
+                <img src={ecampus_logo} alt="ecampus" className="w-45 h-45 object-contain" />
+                {/* <span className={`font-semibold tracking-tight text-3xl transition-colors duration-300 ${
+                  isDarkMode ? 'text-white' : 'text-gray-800'
+                }`}>CAMPUS</span> */}
               </div>
-              <button aria-label="Close sidebar" onClick={handleToggle} className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-white/10 hover:bg-white/20 text-white/70">
+              <button aria-label="Close sidebar" onClick={handleToggle} className={`inline-flex items-center justify-center w-12 h-12 rounded-lg transition-colors duration-300 ${
+                isDarkMode 
+                  ? 'text-white/70 hover:bg-white/20' 
+                  : 'text-gray-600 hover:bg-gray-300'
+              }`}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
@@ -141,15 +188,44 @@ const Sidebar = ({ initialCollapsed = false, onToggle }) => {
         </div>
 
         {/* Sidebar content area - direct in black background */}
-        <div className={`pt-16 px-3`}>
-          {/* Example nav items; replace with your links */}
-          <div className="flex flex-col gap-1">
-            <SidebarItem icon={NewChatButton} label="New Chat" collapsed={collapsed}/>
-            <SidebarItem icon={HomeIcon} label="Home" collapsed={collapsed} />
-            {/* <SidebarItem icon={ListIcon} label="Curriculum" collapsed={collapsed} /> */}
-            {/* <SidebarItem icon={QuizIcon} label="Quiz" collapsed={collapsed} /> */}
-            {/* <SidebarItem icon={CogIcon} label="Settings" collapsed={collapsed} /> */}
+        <div className={`pt-20 px-3 flex flex-col h-full`}>
+          {/* Navigation items */}
+          <div className="flex flex-col gap-1 flex-1">
+            <SidebarItem icon={NewChatButton} label="New Chat" collapsed={collapsed} isDarkMode={isDarkMode}/>
+            <SidebarItem icon={HomeIcon} label="Home" collapsed={collapsed} isDarkMode={isDarkMode} />
+            {/* <SidebarItem icon={ListIcon} label="Curriculum" collapsed={collapsed} isDarkMode={isDarkMode} />
+            <SidebarItem icon={QuizIcon} label="Quiz" collapsed={collapsed} isDarkMode={isDarkMode} />
+            <SidebarItem icon={CogIcon} label="Settings" collapsed={collapsed} isDarkMode={isDarkMode} /> */}
           </div>
+          
+          {/* Theme toggle at bottom - HIDDEN FOR NOW */}
+          {/* <div className="pb-6">
+            <button
+              onClick={toggleTheme}
+              className={`w-full flex items-center rounded-lg px-3 py-2.5 transition-colors ${
+                collapsed ? 'justify-center' : 'justify-center'
+              } ${isDarkMode ? 'bg-neutral-900 hover:bg-neutral-700' : 'bg-neutral-400 hover:bg-neutral-500'}`}
+            >
+              <div className="flex items-center gap-3">
+                {isDarkMode ? (
+                  <MoonIcon className={`w-5 h-5 transition-colors duration-300 ${
+                    isDarkMode ? 'text-white' : 'text-gray-800'
+                  }`} />
+                ) : (
+                  <SunIcon className={`w-5 h-5 transition-colors duration-300 ${
+                    isDarkMode ? 'text-white' : 'text-gray-800'
+                  }`} />
+                )}
+                {!collapsed && (
+                  <span className={`text-sm font-medium transition-colors duration-300 ${
+                    isDarkMode ? 'text-white' : 'text-gray-800'
+                  }`}>
+                    {isDarkMode ? 'Dark' : 'Light'}
+                  </span>
+                )}
+              </div>
+            </button>
+          </div> */}
         </div>
       </div>
     </div>
@@ -158,7 +234,7 @@ const Sidebar = ({ initialCollapsed = false, onToggle }) => {
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const SidebarItem = ({ icon: Icon, label, collapsed }) => {
+const SidebarItem = ({ icon: Icon, label, collapsed, isDarkMode = true }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const handleClick = () => {
@@ -167,11 +243,22 @@ const SidebarItem = ({ icon: Icon, label, collapsed }) => {
   };
   const isHome = label.toLowerCase() === 'home';
   const isActive = isHome && location.pathname === '/';
+  
+  const iconColor = isDarkMode 
+    ? (isActive ? 'text-white' : 'text-white/80 group-hover:text-white')
+    : (isActive ? 'text-gray-800' : 'text-gray-600 group-hover:text-gray-800');
+    
+  const textColor = isDarkMode
+    ? (isActive ? 'text-white font-semibold' : 'text-white/80 group-hover:text-white')
+    : (isActive ? 'text-gray-800 font-semibold' : 'text-gray-600 group-hover:text-gray-800');
+  
   return (
-    <button onClick={handleClick} className="group flex items-center w-full gap-3 rounded-lg px-3 py-2.5 hover:bg-white/10 text-left transition-colors">
-      <Icon className={`w-6 h-6 flex-shrink-0 ${isActive ? 'text-white' : 'text-white/80 group-hover:text-white'}`} />
+    <button onClick={handleClick} className={`group flex items-center w-full gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+      isDarkMode ? 'hover:bg-white/10' : 'hover:bg-gray-300/50'
+    }`}>
+      <Icon className={`w-6 h-6 flex-shrink-0 ${iconColor}`} />
       <span
-        className={`text-sm overflow-hidden whitespace-nowrap transition-all duration-200 ${collapsed ? 'opacity-0 max-w-0' : 'opacity-100 max-w-[160px]'} ${isActive ? 'text-white font-semibold' : 'text-white/80 group-hover:text-white'}`}
+        className={`text-sm overflow-hidden whitespace-nowrap transition-all duration-200 ${collapsed ? 'opacity-0 max-w-0' : 'opacity-100 max-w-[160px]'} ${textColor}`}
       >
         {label}
       </span>
@@ -210,6 +297,18 @@ const CogIcon = (props) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317a1 1 0 0 1 1.35-.436l.3.15a1 1 0 0 0 .9 0l.3-.15a1 1 0 0 1 1.35.436l.2.346a1 1 0 0 0 .75.5l.385.064a1 1 0 0 1 .86.99v.3a1 1 0 0 0 .29.705l.214.214a1 1 0 0 1 0 1.414l-.214.214a1 1 0 0 0-.29.705v.3a1 1 0 0 1-.86.99l-.385.064a1 1 0 0 0-.75.5l-.2.346a1 1 0 0 1-1.35.436l-.3-.15a1 1 0 0 0-.9 0l-.3.15a1 1 0 0 1-1.35-.436l-.2-.346a1 1 0 0 0-.75-.5L7.8 12.7a1 1 0 0 1-.86-.99v-.3a1 1 0 0 0-.29-.705L6.44 10.49a1 1 0 0 1 0-1.414l.214-.214a1 1 0 0 0 .29-.705v-.3a1 1 0 0 1 .86-.99l.385-.064a1 1 0 0 0 .75-.5l.2-.346Z" />
     
     </svg>
+);
+
+const MoonIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={props.className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+  </svg>
+);
+
+const SunIcon = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={props.className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+  </svg>
 );
 
 export default Sidebar;

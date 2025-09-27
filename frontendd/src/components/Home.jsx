@@ -212,14 +212,14 @@
 
 // export default Home;
 
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Chat from './Chat';
 import UniversitySlider from './universitySlider';
 import { askQuery } from "../lib/api";
 import { submitFeedback, fetchFeedbackStats } from "../lib/api";
-import Sidebar from './Sidebar';
+import Sidebar from './Sidebar.jsx';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -237,10 +237,17 @@ const Home = ({ __forceChatMode = false }) => {
   const [copiedMap, setCopiedMap] = useState({}); // { [index]: true when copied }
   const scrollContainerRef = useRef(null);
   const isAtBottomRef = useRef(true);
+  // Initialize theme from localStorage immediately to prevent flash
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme ? savedTheme === 'dark' : true; // Default to dark if no preference
+  });
   // Determine the latest assistant message index for feedback controls
   const lastAssistantIndex = messages.reduce((acc, m, i) => (m.role !== 'user' ? i : acc), -1);
   // Track which assistant messages need condensed table styling
   const [condensedMap, setCondensedMap] = useState({}); // { [index]: true }
+  // Throttle message updates during streaming to reduce flickering
+  const [throttledMessages, setThrottledMessages] = useState([]);
   // Track whether the user is at bottom and only auto-scroll if they are
   useEffect(() => {
     const el = scrollContainerRef.current;
@@ -256,34 +263,66 @@ const Home = ({ __forceChatMode = false }) => {
   }, []);
 
   // When messages grow, scroll to bottom only if user was at bottom
+  // Add smooth scrolling during streaming for better line-by-line effect
   useLayoutEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
     if (isAtBottomRef.current) {
       requestAnimationFrame(() => {
-        el.scrollTop = el.scrollHeight;
+        // Smooth scroll during streaming, instant when complete
+        if (isLoading) {
+          el.scrollTo({
+            top: el.scrollHeight,
+            behavior: 'smooth'
+          });
+        } else {
+          el.scrollTop = el.scrollHeight;
+        }
       });
     }
-  }, [messages.length]);
+  }, [throttledMessages.length, isLoading]);
 
   // After render, detect tables that would overflow and mark them to use condensed styles
+  // Only run this when messages are finalized to reduce flickering during streaming
   useEffect(() => {
+    if (isLoading) return; // Skip during streaming to prevent flicker
     const container = scrollContainerRef.current;
     if (!container) return;
-    const next = {};
-    messages.forEach((m, i) => {
-      if (m.role === 'user') return;
-      const msgRoot = container.querySelector(`[data-message-index="${i}"]`);
-      if (!msgRoot) return;
-      const table = msgRoot.querySelector('table');
-      if (!table) return;
-      const parent = table.parentElement;
-      if (!parent) return;
-      const needsScroll = table.scrollWidth > parent.clientWidth;
-      if (needsScroll) next[i] = true;
-    });
-    setCondensedMap(next);
-  }, [messages]);
+    
+    // Use requestAnimationFrame to defer DOM queries
+    const timeoutId = setTimeout(() => {
+      const next = {};
+      messages.forEach((m, i) => {
+        if (m.role === 'user') return;
+        if (!finalizedMap[i]) return; // Only check finalized messages
+        const msgRoot = container.querySelector(`[data-message-index="${i}"]`);
+        if (!msgRoot) return;
+        const table = msgRoot.querySelector('table');
+        if (!table) return;
+        const parent = table.parentElement;
+        if (!parent) return;
+        const needsScroll = table.scrollWidth > parent.clientWidth;
+        if (needsScroll) next[i] = true;
+      });
+      setCondensedMap(next);
+    }, 100); // Small delay to ensure DOM is stable
+    
+    return () => clearTimeout(timeoutId);
+  }, [messages, isLoading, finalizedMap]);
+
+  // Smooth line-by-line streaming effect without flickering
+  useEffect(() => {
+    if (isLoading) {
+      // During streaming, implement line-by-line effect with smooth transitions
+      const timer = setTimeout(() => {
+        setThrottledMessages([...messages]);
+      }, 80); // Faster updates for smoother line-by-line effect
+      return () => clearTimeout(timer);
+    } else {
+      // When not streaming, update immediately
+      setThrottledMessages([...messages]);
+    }
+  }, [messages, isLoading]);
 
   // Process response for markdown rendering (clean/sanitize and normalize)
   const processResponse = (text) => {
@@ -311,6 +350,78 @@ const Home = ({ __forceChatMode = false }) => {
 
     return processed;
   };
+
+  // Function to get memoized components for a specific message index with smooth transitions
+  const getComponentsForMessage = useCallback((messageIndex) => ({
+    table: ({ node, ...props }) => (
+      <table className={`table-fixed w-full border-collapse transition-all duration-200 ${condensedMap[messageIndex] ? 'text-[12px] md:text-[13px]' : 'text-[14px] md:text-[15px]'}`} {...props} />
+    ),
+    th: ({ node, ...props }) => (
+      <th
+        className={`border ${condensedMap[messageIndex] ? 'px-2 py-1' : 'px-3 py-2'} text-left break-words whitespace-normal transition-all duration-200 ${
+          isDarkMode 
+            ? 'bg-gray-700 border-white/20 text-white' 
+            : 'bg-gray-600 border-gray-300 text-white'
+        }`}
+        {...props}
+      />
+    ),
+    td: ({ node, ...props }) => (
+      <td
+        className={`border ${condensedMap[messageIndex] ? 'px-2 py-1' : 'px-3 py-2'} break-words whitespace-normal transition-all duration-200 ${
+          isDarkMode 
+            ? 'border-white/20 text-white/90' 
+            : 'border-gray-300 text-gray-800'
+        }`}
+        {...props}
+      />
+    ),
+    h1: ({ node, ...props }) => (
+      <h1 className={`text-2xl md:text-3xl font-bold mb-6 mt-8 transition-colors duration-200 ${
+        isDarkMode ? 'text-white' : 'text-gray-900'
+      }`} {...props} />
+    ),
+    h2: ({ node, ...props }) => (
+      <h2 className={`text-xl md:text-2xl font-semibold mb-5 mt-6 transition-colors duration-200 ${
+        isDarkMode ? 'text-white' : 'text-gray-900'
+      }`} {...props} />
+    ),
+    h3: ({ node, ...props }) => (
+      <h3 className={`text-lg md:text-xl font-medium mb-4 mt-5 transition-colors duration-200 ${
+        isDarkMode ? 'text-white' : 'text-gray-900'
+      }`} {...props} />
+    ),
+    p: ({ node, ...props }) => (
+      <p className={`mb-4 leading-relaxed transition-colors duration-200 ${
+        isDarkMode ? 'text-white/90' : 'text-gray-800'
+      }`} {...props} />
+    ),
+    ul: ({ node, ...props }) => (
+      <ul className={`list-disc pl-6 mb-6 transition-colors duration-200 ${
+        isDarkMode ? 'text-white/90' : 'text-gray-800'
+      }`} {...props} />
+    ),
+    ol: ({ node, ...props }) => (
+      <ol className={`list-decimal pl-6 mb-6 transition-colors duration-200 ${
+        isDarkMode ? 'text-white/90' : 'text-gray-800'
+      }`} {...props} />
+    ),
+    li: ({ node, ...props }) => (
+      <li className={`mb-2 transition-colors duration-200 ${
+        isDarkMode ? 'text-white/90' : 'text-gray-800'
+      }`} {...props} />
+    ),
+    hr: ({ node, ...props }) => (
+      <hr className={`my-8 border-0 h-px ${
+        isDarkMode ? 'bg-white/20' : 'bg-gray-300'
+      }`} {...props} />
+    ),
+    blockquote: ({ node, ...props }) => (
+      <blockquote className={`border-l-4 pl-4 my-6 italic ${
+        isDarkMode ? 'border-white/30 text-white/80' : 'border-gray-400 text-gray-700'
+      }`} {...props} />
+    )
+  }), [isDarkMode, condensedMap]);
 
   const handleQuery = async (queryText, conversationHistory) => {
     setIsLoading(true);
@@ -397,12 +508,29 @@ const Home = ({ __forceChatMode = false }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [__forceChatMode]);
 
+  useEffect(() => {
+    // Listen for theme changes
+    const handleThemeChange = (event) => {
+      setIsDarkMode(event.detail.isDarkMode);
+    };
+
+    window.addEventListener('themeChanged', handleThemeChange);
+    
+    // Theme is already initialized in useState, no need to load again
+
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange);
+    };
+  }, []);
+
   return (
-    <div className="h-full bg-black">
+    <div className={`h-full transition-colors duration-300 ${isDarkMode ? 'bg-black' : 'bg-gray-200'}`}>
       {/* Main content area (sidebar is now provided by Layout) */}
-      <div className="h-full bg-black overflow-hidden">
-        <div className="h-full flex flex-col items-center justify-center p-2 md:p-4 lg:p-6">
-          <div className={`w-full h-[95vh] bg-neutral-800 rounded-[20px] flex flex-col items-center px-3 md:px-4 transition-all duration-300 ${isChatActive ? 'pb-3' : 'pb-10 md:pb-14'}`}>
+      <div className={`h-full overflow-hidden transition-colors duration-300 ${isDarkMode ? 'bg-black' : 'bg-gray-200'}`}>
+        <div className="h-full flex flex-col items-start justify-center pt-2 pr-2 pb-2 md:pt-4 md:pr-4 md:pb-4 lg:pt-6 lg:pr-6 lg:pb-6">
+          <div className={`w-full h-[95vh] rounded-[20px] flex flex-col items-center pr-3 md:pr-4 pt-3 md:pt-4 transition-all duration-300 ${isChatActive ? 'pb-3' : 'pb-10 md:pb-14'} ${
+            isDarkMode ? 'bg-neutral-800' : 'bg-white'
+          }`}>
 
         {!isChatActive && !__forceChatMode ? (
             <>
@@ -441,7 +569,7 @@ const Home = ({ __forceChatMode = false }) => {
               {/* Chat messages */}
               <div ref={scrollContainerRef} className="flex-1 w-full flex justify-center overflow-y-auto scrollbar-hidden py-2 min-h-0">
                 <div className="w-full max-w-4xl px-2 md:px-3 space-y-2">
-                  {messages.map((message, index) => (
+                  {throttledMessages.map((message, index) => (
                     <div
                       key={index}
                       className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -449,66 +577,42 @@ const Home = ({ __forceChatMode = false }) => {
                       <div
                         className={`rounded-lg md:rounded-xl text-sm md:text-base leading-relaxed ${
                           message.role === 'user'
-                            ? 'max-w-[85%] px-3 md:px-3.5 py-1.5 md:py-2.5 my-3 md:my-5 bg-slate-500 text-white'
-                            : 'max-w-full p-0 bg-transparent text-white/90 border-0 chat-message rounded-none'
+                            ? `max-w-[85%] px-3 md:px-3.5 py-1.5 md:py-2.5 my-3 md:my-5 ${
+                                isDarkMode ? 'bg-slate-500 text-white' : 'bg-gray-200 text-gray-800'
+                              }`
+                            : `max-w-full p-0 bg-transparent border-0 chat-message rounded-none ${
+                                isDarkMode ? 'text-white/90' : 'text-gray-800'
+                              }`
                         }`}
                         style={{ overflowX: message.role !== 'user' ? 'auto' : 'hidden' }}
                         classNameGroup
                         data-message-index={index}
                       >
-                        <div className="prose prose-invert max-w-none overflow-x-auto scrollbar-hidden">
+                        <div className={`prose max-w-none overflow-x-auto scrollbar-hidden transition-opacity duration-300 ${
+                          isDarkMode ? 'prose-invert' : 'prose-gray'
+                        } ${isLoading && index === throttledMessages.length - 1 && !finalizedMap[index] ? 'opacity-90' : 'opacity-100'}`}>
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
-                            components={{
-                              table: ({ node, ...props }) => (
-                                <table
-                                  className={`border-collapse table-fixed w-full mb-6 ${condensedMap[index] ? 'text-[12px] md:text-[13px]' : 'text-[14px] md:text-[15px]'}`}
-                                  {...props}
-                                />
-                              ),
-                              th: ({ node, ...props }) => (
-                                <th
-                                  className={`border bg-black-500 border-white/20 ${condensedMap[index] ? 'px-2 py-1' : 'px-3 py-2'} text-left break-words whitespace-normal`}
-                                  {...props}
-                                />
-                              ),
-                              td: ({ node, ...props }) => (
-                                <td
-                                  className={`border border-white/10 ${condensedMap[index] ? 'px-2 py-1' : 'px-3 py-2'} align-top break-words whitespace-normal`}
-                                  {...props}
-                                />
-                              ),
-                              thead: ({ node, ...props }) => (
-                                <thead className="bg-white/5" {...props} />
-                              ),
-                              h1: ({ node, ...props }) => (
-                                <h1 className="text-2xl md:text-3xl font-bold mb-4 mt-6" {...props} />
-                              ),
-                              h2: ({ node, ...props }) => (
-                                <h2 className="text-xl md:text-2xl font-bold mb-3 mt-5" {...props} />
-                              ),
-                              h3: ({ node, ...props }) => (
-                                <h3 className="text-lg md:text-xl font-semibold mb-3 mt-4" {...props} />
-                              ),
-                              p: ({ node, ...props }) => (
-                                <p className="mb-1" {...props} />
-                              ),
-                              ul: ({ node, ...props }) => (
-                                <ul className="mb-4" {...props} />
-                              ),
-                              ol: ({ node, ...props }) => (
-                                <ol className="mb-4" {...props} />
-                              )
-                            }}
+                            components={getComponentsForMessage(index)}
                           >
   {message.content}
                           </ReactMarkdown>
+                          {/* Typing cursor for streaming messages */}
+                          {isLoading && index === throttledMessages.length - 1 && !finalizedMap[index] && (
+                            <span className={`inline-block w-2 h-5 ml-1 ${
+                              isDarkMode ? 'bg-white' : 'bg-gray-800'
+                            } animate-pulse`}></span>
+                          )}
                         </div>
                         {message.role !== 'user' && message.content && finalizedMap[index] && (
-                          <div className="mt-1 flex items-center justify-end gap-1">
+                          <div className="mt-1 flex items-center justify-start gap-1">
                             <button
                               aria-label="Copy response"
-                              className="cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/80"
+                              className={`cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-300 ${
+                                isDarkMode 
+                                  ? 'bg-white/10 hover:bg-white/20 text-white/80' 
+                                  : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
+                              }`}
                               onClick={() => {
                                 navigator.clipboard.writeText(message.content);
                                 setCopiedMap(prev => ({ ...prev, [index]: true }));
@@ -529,7 +633,11 @@ const Home = ({ __forceChatMode = false }) => {
                             </button>
                             <button
                               aria-label="Like this answer"
-                              className="cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/80"
+                              className={`cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-300 ${
+                                isDarkMode 
+                                  ? 'bg-white/10 hover:bg-white/20 text-white/80' 
+                                  : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
+                              }`}
                               onClick={async () => {
                                 console.log('Like button clicked for index:', index);
                                 const newSentiment = feedbackMap[index] === 'up' ? null : 'up';
@@ -548,14 +656,22 @@ const Home = ({ __forceChatMode = false }) => {
                                 }
                               }}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={feedbackMap[index] === 'up' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={`w-4 h-4 ${feedbackMap[index] === 'up' ? 'text-white' : 'text-white/80'}`}>
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={feedbackMap[index] === 'up' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={`w-4 h-4 transition-colors duration-300 ${
+                                feedbackMap[index] === 'up' 
+                                  ? (isDarkMode ? 'text-white' : 'text-gray-800')
+                                  : (isDarkMode ? 'text-white/80' : 'text-gray-600')
+                              }`}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21h-3A1.5 1.5 0 0 1 3 19.5v-7A1.5 1.5 0 0 1 4.5 11h3V21Zm3-10.5 3.75-6.5a1.5 1.5 0 0 1 2.63 1.5L15.75 9h3.38a1.5 1.5 0 0 1 1.48 1.74l-1.2 7.2A2.25 2.25 0 0 1 17.17 20H10.5V10.5Z" />
                               </svg>
                             </button>
                             <span className="text-xs text-white/50" data-feedback-up-count></span>
                             <button
                               aria-label="Dislike this answer"
-                              className="cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/80"
+                              className={`cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-300 ${
+                                isDarkMode 
+                                  ? 'bg-white/10 hover:bg-white/20 text-white/80' 
+                                  : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
+                              }`}
                               onClick={async () => {
                                 console.log('Dislike button clicked for index:', index);
                                 const newSentiment = feedbackMap[index] === 'down' ? null : 'down';
@@ -574,7 +690,11 @@ const Home = ({ __forceChatMode = false }) => {
                                 }
                               }}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={feedbackMap[index] === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={`w-4 h-4 rotate-180 ${feedbackMap[index] === 'down' ? 'text-white' : 'text-white/80'}`}>
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={feedbackMap[index] === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={`w-4 h-4 rotate-180 transition-colors duration-300 ${
+                                feedbackMap[index] === 'down' 
+                                  ? (isDarkMode ? 'text-white' : 'text-gray-800')
+                                  : (isDarkMode ? 'text-white/80' : 'text-gray-600')
+                              }`}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21h-3A1.5 1.5 0 0 1 3 19.5v-7A1.5 1.5 0 0 1 4.5 11h3V21Zm3-10.5 3.75-6.5a1.5 1.5 0 0 1 2.63 1.5L15.75 9h3.38a1.5 1.5 0 0 1 1.48 1.74l-1.2 7.2A2.25 2.25 0 0 1 17.17 20H10.5V10.5Z" />
                               </svg>
                             </button>
@@ -612,6 +732,7 @@ const Home = ({ __forceChatMode = false }) => {
                   }} 
                   isInChatMode={true}
                   placeholder={suggestedPlaceholder}
+                  isDarkMode={isDarkMode}
                 />
               </div>
             </>
@@ -624,3 +745,4 @@ const Home = ({ __forceChatMode = false }) => {
 };
 
 export default Home;
+
