@@ -163,7 +163,7 @@ const Sidebar = ({ initialCollapsed = false, onToggle }) => {
           {collapsed ? (
             // collapsed: one button with just the logo (acts as open)
             <button aria-label="Open sidebar" onClick={handleToggle} className="inline-flex items-center mt-2 justify-center w-10 h-10 rounded-lg hover:bg-white/20">
-              <img src={ecampuss} alt="ecampus" className="w-10 h-10 object-contain" />
+              <img src={ecampuss} alt="ecampus" className="w-11 h-11 object-contain" />
             </button>
           ) : (
             // expanded: static logo + text on the left, separate close button on right
