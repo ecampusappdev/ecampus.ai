@@ -528,7 +528,7 @@ const Home = ({ __forceChatMode = false }) => {
       {/* Main content area (sidebar is now provided by Layout) */}
       <div className={`h-full overflow-hidden transition-colors duration-300 ${isDarkMode ? 'bg-black' : 'bg-gray-200'}`}>
         <div className="h-full flex flex-col items-start justify-center pt-2 pr-2 pb-2 md:pt-4 md:pr-4 md:pb-4 lg:pt-6 lg:pr-6 lg:pb-6">
-          <div className={`w-full h-[95vh] rounded-[20px] flex flex-col items-center pr-3 md:pr-4 pt-3 md:pt-4 transition-all duration-300 ${isChatActive ? 'pb-3' : 'pb-10 md:pb-14'} ${
+          <div className={`w-full h-[95vh] rounded-[20px] flex flex-col items-center px-2 sm:px-3 md:px-4 pt-3 md:pt-4 transition-all duration-300 ${isChatActive ? 'pb-3' : 'pb-10 md:pb-14'} ${
             isDarkMode ? 'bg-neutral-800' : 'bg-white'
           }`}>
 

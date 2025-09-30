@@ -35,7 +35,7 @@ export default function ChatArea({ onSubmit, placeholder }) {
 
   return (
     <div className="h-full w-full flex flex-col items-start justify-center pt-2 pr-2 pb-2 md:pt-4 md:pr-4 md:pb-4 lg:pt-6 lg:pr-6 lg:pb-6">
-      <div className={`w-full h-[95vh] rounded-[20px] flex flex-col items-center pr-3 md:pr-4 pt-3 md:pt-4 pb-10 md:pb-14 transition-colors duration-300 ${
+      <div className={`w-full h-[95vh] rounded-[20px] flex flex-col items-center px-2 sm:px-3 md:px-4 pt-3 md:pt-4 pb-10 md:pb-14 transition-colors duration-300 ${
         isDarkMode ? 'bg-neutral-800' : 'bg-white'
       }`}>
         <div className="flex-1 w-full flex flex-col items-center justify-center">

@@ -50,7 +50,7 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMo
   };
 
   return (
-    <div className={`w-full flex flex-col items-center gap-4 ${isInChatMode ? 'max-w-4xl mx-auto px-2' : 'max-w-xl'}`}>
+    <div className={`w-full flex flex-col items-center gap-4 ${isInChatMode ? 'max-w-4xl mx-auto px-2' : 'max-w-sm sm:max-w-md md:max-w-xl'}`}>
       {/* Input */}
       <form onSubmit={handleSubmit} className="relative w-full">
         <div className={`relative mt-3 rounded-[10px] px-3 py-2 border transition-all duration-300 flex items-end ${
@@ -96,12 +96,12 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMo
 
       {/* Suggestion chips - only show when not in chat mode */}
       {!isInChatMode && (
-        <div className="flex flex-wrap justify-center gap-2 md:gap-3 mt-8">
+        <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 md:gap-3 mt-6 sm:mt-8">
           {suggestions.map((s, i) => (
             <button
               key={i}
               onClick={() => handleSuggestionClick(s)}
-              className={`px-3 md:px-4 py-1.5 text-xs md:text-sm rounded-full shadow-md transition-colors duration-300 ${
+              className={`px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 text-xs sm:text-sm rounded-full shadow-md transition-colors duration-300 ${
                 isDarkMode 
                   ? 'bg-neutral-800 hover:bg-neutral-700 text-white' 
                   : 'bg-gray-200 hover:bg-gray-400 text-gray-800'
