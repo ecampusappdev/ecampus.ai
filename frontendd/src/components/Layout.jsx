@@ -29,7 +29,7 @@ export default function Layout() {
       isDarkMode ? 'bg-black' : 'bg-gray-200'
     }`}>
       <Sidebar />
-      <main className={`flex-1 overflow-hidden ml-0 transition-colors duration-300 ${
+      <main className={`flex-1 overflow-hidden transition-colors duration-300 ${
         isDarkMode ? 'bg-black' : 'bg-gray-200'
       }`}>
         <Outlet />

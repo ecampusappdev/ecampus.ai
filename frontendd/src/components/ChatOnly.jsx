@@ -110,7 +110,7 @@ export default function ChatOnly() {
   }, []);
 
   return (
-    <div className="h-full w-full flex flex-col items-center justify-center p-2 md:p-4 lg:p-6">
+    <div className="h-full w-full flex flex-col items-center justify-center py-2 md:py-4 lg:py-6">
       <div className="w-full h-[95vh] bg-neutral-800 rounded-[20px] flex flex-col items-center px-3 md:px-4 pb-3">
         <div className="w-full flex items-center justify-between py-2 md:py-3">
           <button onClick={() => navigate('/')} className="flex items-center space-x-2 text-white/70 hover:text-white transition-colors">

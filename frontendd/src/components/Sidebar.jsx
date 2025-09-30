@@ -153,7 +153,7 @@ const Sidebar = ({ initialCollapsed = false, onToggle }) => {
   }, [isDarkMode]);
 
   return (
-    <div className={`h-full flex-shrink-0 transition-[width] duration-300 shadow-2xl shadow-gray-900 ${collapsed ? 'w-14 md:w-18' : 'w-48 sm:w-56 md:w-64'}`}>
+    <div className={`h-full flex-shrink-0 transition-[width] duration-300 shadow-2xl shadow-gray-900 ${collapsed ? 'w-14 md:w-18' : 'w-80 sm:w-80 md:w-56 lg:w-64'}`}>
       {/* Sidebar container */}
       <div className={`h-full w-full relative transition-colors duration-300 ${
         isDarkMode ? 'bg-black' : 'bg-gray-200'
