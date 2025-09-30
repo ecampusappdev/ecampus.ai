@@ -255,13 +255,13 @@ const UniversitySlider = () => {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="mx-auto px-4 py-6 max-w-sm sm:max-w-md md:max-w-3xl lg:max-w-4xl">
       <Slider key={`slides-${slidesToShow}`} {...settings}>
         {items.map((item) => (
           <div key={item.id} className="px-2">
             <div className={`relative group shadow-lg rounded-xl overflow-hidden h-36 md:h-40 transition-colors duration-300 ${
               isDarkMode ? 'bg-neutral-900' : 'bg-gray-300'
-            }`}>
+            }`}> 
               {/* Centered content wrapper for perfect vertical alignment */}
               <div className="h-full w-full flex items-center justify-center p-4">
                 {/* Logo */}
