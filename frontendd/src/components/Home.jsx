@@ -572,7 +572,7 @@ const Home = ({ __forceChatMode = false }) => {
                 {/* Mobile toggle inside grey panel */}
                 <button
                   onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
-                  className={`absolute left-3 top-3 md:hidden w-8 h-8 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'} z-10`}
+                  className={`absolute left-2 top-2 md:hidden w-8 h-8 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'} z-10`}
                   aria-label="Open sidebar"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -115,7 +115,7 @@ export default function ChatOnly() {
         {/* Mobile toggle inside panel */}
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
-          className="absolute left-3 top-3 md:hidden w-10 h-10 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg"
+          className="absolute left-2 top-2 md:hidden w-10 h-10 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg"
           aria-label="Open sidebar"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
