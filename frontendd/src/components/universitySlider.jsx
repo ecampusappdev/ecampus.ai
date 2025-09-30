@@ -221,8 +221,10 @@ const UniversitySlider = () => {
     pauseOnFocus: false,
     // Breakpoints are max-width by default
     responsive: [
+      { breakpoint: 1200, settings: { slidesToShow: 3, arrows: false } }, // <=1200 keep 3 on large laptops
       { breakpoint: 1024, settings: { slidesToShow: 2, arrows: false } }, // <=1024px (tablet)
-      { breakpoint: 640, settings: { slidesToShow: 1, arrows: false } }, // <=640px (phone)
+      { breakpoint: 768, settings: { slidesToShow: 1, arrows: false } }, // <=768px (most phones)
+      { breakpoint: 640, settings: { slidesToShow: 1, arrows: false } }, // <=640px (small phones)
     ],
   };
 

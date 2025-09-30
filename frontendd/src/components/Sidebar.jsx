@@ -112,13 +112,20 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme ? savedTheme === 'dark' : true; // Default to dark if no preference
   });
-  const [floatPos, setFloatPos] = useState({ top: undefined, left: undefined });
+  // Simplified: no dynamic positioning to avoid inconsistencies across devices
 
   const handleToggle = () => {
     const next = !collapsed;
     setCollapsed(next);
     if (typeof onToggle === 'function') onToggle(next);
   };
+
+  // Listen for global openSidebar to open the sidebar from inside panels
+  useEffect(() => {
+    const open = () => setCollapsed(false);
+    window.addEventListener('openSidebar', open);
+    return () => window.removeEventListener('openSidebar', open);
+  }, []);
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
@@ -153,45 +160,7 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
     }
   }, [isDarkMode]);
 
-  // Keep floating toggle inside the grey panel bounds on mobile
-  useEffect(() => {
-    const recompute = () => {
-      try {
-        const panel = document.getElementById('mainPanel');
-        if (!panel) {
-          setFloatPos({ top: undefined, left: undefined });
-          return;
-        }
-        const rect = panel.getBoundingClientRect();
-        const styles = window.getComputedStyle(panel);
-        const padTop = parseFloat(styles.paddingTop || '0');
-        const padLeft = parseFloat(styles.paddingLeft || '0');
-        const extraInset = 16; // keep away from rounded corners/heading
-        const buttonSize = 40; // w/h of the toggle
-
-        const minLeft = rect.left + padLeft + extraInset;
-        const maxLeft = rect.right - buttonSize - padLeft - extraInset;
-        const minTop = rect.top + padTop + extraInset;
-        const maxTop = rect.bottom - buttonSize - extraInset;
-
-        setFloatPos({
-          left: Math.max(minLeft, Math.min(maxLeft, minLeft)),
-          top: Math.max(minTop, Math.min(maxTop, minTop)),
-        });
-      } catch (_) {
-        setFloatPos({ top: undefined, left: undefined });
-      }
-    };
-    recompute();
-    window.addEventListener('resize', recompute);
-    window.addEventListener('orientationchange', recompute);
-    window.addEventListener('scroll', recompute, { passive: true });
-    return () => {
-      window.removeEventListener('resize', recompute);
-      window.removeEventListener('orientationchange', recompute);
-      window.removeEventListener('scroll', recompute);
-    };
-  }, []);
+  // Removed dynamic mobile toggle positioning
 
   return (
     <>
@@ -203,22 +172,7 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
         />
       )}
       
-      {/* Mobile floating toggle button - only visible when collapsed on mobile */}
-      {collapsed && (
-        <button 
-          onClick={handleToggle}
-          className="fixed z-50 md:hidden w-10 h-10 bg-black/80 hover:bg-black text-white rounded-lg flex items-center justify-center shadow-lg"
-          style={{
-            top: floatPos.top ?? 'calc(env(safe-area-inset-top) + 0.75rem)',
-            left: floatPos.left ?? 'calc(env(safe-area-inset-left) + 0.75rem)'
-          }}
-          aria-label="Open sidebar"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      )}
+      {/* Mobile floating toggle button removed; handled within main panel components */}
       
       {/* Sidebar */}
                 <div className={`h-full transition-[width] duration-300 shadow-2xl shadow-gray-900 absolute left-0 top-0 z-50 md:relative md:flex-shrink-0 ${collapsed ? 'w-0 md:w-18' : 'w-64 md:w-56 lg:w-64'}`}>

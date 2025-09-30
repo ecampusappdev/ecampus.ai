@@ -111,7 +111,17 @@ export default function ChatOnly() {
 
   return (
     <div className="h-full w-full flex flex-col items-center justify-center py-2 md:py-4 lg:py-6">
-      <div id="mainPanel" className="w-full h-[95vh] bg-neutral-800 rounded-[20px] flex flex-col items-center px-3 md:px-4 pb-3">
+      <div id="mainPanel" className="relative w-full h-[95vh] bg-neutral-800 rounded-[20px] flex flex-col items-center px-3 md:px-4 pb-3">
+        {/* Mobile toggle inside panel */}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
+          className="absolute left-3 top-3 md:hidden w-10 h-10 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg"
+          aria-label="Open sidebar"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
         <div className="w-full relative flex items-center justify-between py-2 md:py-3">
           <button onClick={() => navigate('/')} className="hidden md:flex items-center justify-center w-10 h-10 text-white/70 hover:text-white transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

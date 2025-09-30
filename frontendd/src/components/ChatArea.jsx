@@ -35,9 +35,19 @@ export default function ChatArea({ onSubmit, placeholder }) {
 
   return (
     <div className="h-full w-full flex flex-col items-start justify-center pt-2 pb-2 md:pt-4 md:pb-4 lg:pt-6 lg:pb-6">
-      <div id="mainPanel" className={`w-full h-[95vh] rounded-[20px] flex flex-col items-center px-2 sm:px-3 md:px-4 pt-3 md:pt-4 pb-10 md:pb-14 transition-colors duration-300 ${
+      <div id="mainPanel" className={`relative w-full h-[95vh] rounded-[20px] flex flex-col items-center px-2 sm:px-3 md:px-4 pt-3 md:pt-4 pb-10 md:pb-14 transition-colors duration-300 ${
         isDarkMode ? 'bg-neutral-800' : 'bg-white'
       }`}>
+        {/* Mobile toggle inside panel */}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
+          className="absolute left-3 top-3 md:hidden w-10 h-10 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg"
+          aria-label="Open sidebar"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
         <div className="flex-1 w-full flex flex-col items-center justify-center">
           <h1 className={`text-2xl md:text-4xl font-semibold tracking-tight text-center mb-6 transition-colors duration-300 ${
             isDarkMode ? 'text-white/75' : 'text-gray-800'

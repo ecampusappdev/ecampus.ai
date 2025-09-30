@@ -248,6 +248,8 @@ const Home = ({ __forceChatMode = false }) => {
   const [condensedMap, setCondensedMap] = useState({}); // { [index]: true }
   // Throttle message updates during streaming to reduce flickering
   const [throttledMessages, setThrottledMessages] = useState([]);
+  const [showHeader, setShowHeader] = useState(true);
+  const prevScrollTopRef = useRef(0);
   // Track whether the user is at bottom and only auto-scroll if they are
   useEffect(() => {
     const el = scrollContainerRef.current;
@@ -256,6 +258,14 @@ const Home = ({ __forceChatMode = false }) => {
       const threshold = 60;
       const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= threshold;
       isAtBottomRef.current = atBottom;
+      const current = el.scrollTop;
+      const prev = prevScrollTopRef.current;
+      if (current > prev + 10) {
+        setShowHeader(false);
+      } else if (current < prev - 10) {
+        setShowHeader(true);
+      }
+      prevScrollTopRef.current = current;
     };
     el.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
@@ -528,7 +538,7 @@ const Home = ({ __forceChatMode = false }) => {
       {/* Main content area (sidebar is now provided by Layout) */}
       <div className={`h-full overflow-hidden transition-colors duration-300 ${isDarkMode ? 'bg-black' : 'bg-gray-200'}`}>
         <div className="h-full flex flex-col items-start justify-center pt-2 pb-2 md:pt-4 md:pb-4 lg:pt-6 lg:pb-6">
-          <div className={`w-full h-[95vh] rounded-[20px] flex flex-col items-center px-2 sm:px-3 md:px-4 pt-3 md:pt-4 transition-all duration-300 ${isChatActive ? 'pb-3' : 'pb-10 md:pb-14'} ${
+          <div id="mainPanel" className={`relative w-full h-[95vh] rounded-[20px] flex flex-col items-center px-2 sm:px-3 md:px-4 pt-3 md:pt-4 transition-all duration-300 ${isChatActive ? 'pb-3' : 'pb-10 md:pb-14'} ${
             isDarkMode ? 'bg-neutral-800' : 'bg-white'
           }`}>
 
@@ -549,7 +559,7 @@ const Home = ({ __forceChatMode = false }) => {
             </>
           ) : (
             <>
-              {/* Header */}
+              {/* Header + in-panel mobile toggle (hide on scroll down) */}
               <div className="w-full relative flex items-center justify-between py-2 md:py-3">
                 <button
                   onClick={handleBackToHome}
@@ -559,10 +569,18 @@ const Home = ({ __forceChatMode = false }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <h1 className="absolute left-1/2 -translate-x-1/2 top-1 text-white/80 text-sm md:text-lg font-semibold">eCampus AI Chat</h1>
-                <div className="flex items-center">
-                 
-                </div>
+                {/* Mobile toggle inside grey panel */}
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
+                  className={`absolute left-3 top-3 md:hidden w-10 h-10 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                  aria-label="Open sidebar"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                <h1 className={`absolute left-1/2 -translate-x-1/2 top-1 text-white/80 text-sm md:text-lg font-semibold transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>eCampus AI Chat</h1>
+                <div className="flex items-center"></div>
               </div>
 
               {/* Chat messages */}
