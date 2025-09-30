@@ -20,6 +20,33 @@ export default function ChatOnly() {
   const scrollContainerRef = useRef(null);
   const isAtBottomRef = useRef(true);
 
+  // Hydrate messages from localStorage on mount (persist chat across reloads)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('chat_messages');
+      console.log('ChatOnly hydrating from localStorage:', saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+          console.log('ChatOnly restored messages:', parsed);
+        }
+      }
+    } catch (error) {
+      console.error('ChatOnly error hydrating:', error);
+    }
+  }, []);
+
+  // Persist messages on change
+  useEffect(() => {
+    try {
+      localStorage.setItem('chat_messages', JSON.stringify(messages));
+      console.log('ChatOnly saved to localStorage:', messages.length, 'messages');
+    } catch (error) {
+      console.error('ChatOnly error saving:', error);
+    }
+  }, [messages]);
+
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
@@ -97,6 +124,8 @@ export default function ChatOnly() {
   };
 
   useEffect(() => {
+    // Only bootstrap initialQuery if there are no persisted messages
+    if (messages.length > 0) return;
     const q = String(location.state?.initialQuery || '').trim();
     if (q) {
       history.replaceState({}, '');
@@ -107,7 +136,7 @@ export default function ChatOnly() {
       })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [messages.length]);
 
   return (
     <div className="h-full w-full flex flex-col items-center justify-center py-2 md:py-4 lg:py-6">
@@ -123,7 +152,13 @@ export default function ChatOnly() {
           </svg>
         </button>
         <div className="w-full relative flex items-center justify-between py-2 md:py-3">
-          <button onClick={() => navigate('/')} className="hidden md:flex items-center justify-center w-10 h-10 text-white/70 hover:text-white transition-colors">
+          <button onClick={() => {
+            // Clear localStorage when going back to home
+            try {
+              localStorage.removeItem('chat_messages');
+            } catch (_) {}
+            navigate('/');
+          }} className="hidden md:flex items-center justify-center w-10 h-10 text-white/70 hover:text-white transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -216,5 +251,6 @@ export default function ChatOnly() {
     </div>
   );
 }
+
 
 

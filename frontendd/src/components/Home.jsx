@@ -252,6 +252,28 @@ const Home = ({ __forceChatMode = false }) => {
   const prevScrollTopRef = useRef(0);
   // Track whether the user is at bottom and only auto-scroll if they are
   useEffect(() => {
+    // Hydrate persisted state on first mount
+    try {
+      const savedMessages = localStorage.getItem('home_chat_messages');
+      const savedActive = localStorage.getItem('home_isChatActive');
+      const savedPlaceholder = localStorage.getItem('home_placeholder');
+      console.log('Hydrating from localStorage:', { savedMessages, savedActive, savedPlaceholder });
+      if (savedMessages) {
+        const parsed = JSON.parse(savedMessages);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+          console.log('Restored messages:', parsed);
+        }
+      }
+      if (savedActive != null) {
+        setIsChatActive(savedActive === 'true');
+        console.log('Restored chat active state:', savedActive === 'true');
+      }
+      if (savedPlaceholder) setSuggestedPlaceholder(savedPlaceholder);
+    } catch (error) {
+      console.error('Error hydrating from localStorage:', error);
+    }
+
     const el = scrollContainerRef.current;
     if (!el) return;
     const onScroll = () => {
@@ -333,6 +355,18 @@ const Home = ({ __forceChatMode = false }) => {
       setThrottledMessages([...messages]);
     }
   }, [messages, isLoading]);
+
+  // Persist key UI state
+  useEffect(() => {
+    try {
+      localStorage.setItem('home_chat_messages', JSON.stringify(messages));
+      localStorage.setItem('home_isChatActive', String(isChatActive));
+      localStorage.setItem('home_placeholder', suggestedPlaceholder || '');
+      console.log('Saved to localStorage:', { messages: messages.length, isChatActive, suggestedPlaceholder });
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+  }, [messages, isChatActive, suggestedPlaceholder]);
 
   // Process response for markdown rendering (clean/sanitize and normalize)
   const processResponse = (text) => {
@@ -497,15 +531,22 @@ const Home = ({ __forceChatMode = false }) => {
     setIsChatActive(false);
     setMessages([]);
     setSuggestedPlaceholder("");
+    // Clear localStorage when intentionally going back to home
+    try {
+      localStorage.removeItem('home_chat_messages');
+      localStorage.removeItem('home_isChatActive');
+      localStorage.removeItem('home_placeholder');
+    } catch (_) {}
     navigate('/');
   };
 
-  // If navigated from ChatArea with an initial query, run it once
+  // If navigated from ChatArea with an initial query, run once only when no persisted messages
   useEffect(() => {
-    if (__forceChatMode && location?.state?.initialQuery) {
+    if (!__forceChatMode) return;
+    if (messages.length > 0) return;
+    if (location?.state?.initialQuery) {
       const q = String(location.state.initialQuery || '').trim();
       if (q) {
-        // Clear state so it doesn't retrigger on re-render
         history.replaceState({}, '');
         (async () => {
           const userMessage = { role: 'user', content: q };
@@ -516,7 +557,7 @@ const Home = ({ __forceChatMode = false }) => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [__forceChatMode]);
+  }, [__forceChatMode, messages.length]);
 
   useEffect(() => {
     // Listen for theme changes

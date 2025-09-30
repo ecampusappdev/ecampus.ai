@@ -261,7 +261,7 @@ const UniversitySlider = () => {
           <div key={item.id} className="px-2">
             <div className={`relative group shadow-lg rounded-xl overflow-hidden h-36 md:h-40 transition-colors duration-300 ${
               isDarkMode ? 'bg-neutral-900' : 'bg-gray-300'
-            }`}> 
+            }`}>
               {/* Centered content wrapper for perfect vertical alignment */}
               <div className="h-full w-full flex items-center justify-center p-4">
                 {/* Logo */}
