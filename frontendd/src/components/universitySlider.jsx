@@ -208,11 +208,29 @@ const UniversitySlider = () => {
     },
   ];
 
+  // Determine slidesToShow based on actual viewport (hard override for phones)
+  const [slidesToShow, setSlidesToShow] = useState(3);
+  useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      if (w <= 640) setSlidesToShow(1);
+      else if (w <= 1024) setSlidesToShow(2);
+      else setSlidesToShow(3);
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('orientationchange', compute);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('orientationchange', compute);
+    };
+  }, []);
+
   const settings = {
     dots: true,
     infinite: true,
     speed: 600,
-    slidesToShow: 3, // default desktop/laptop
+    slidesToShow,
     slidesToScroll: 1,
     arrows: false,
     autoplay: true,
@@ -221,10 +239,10 @@ const UniversitySlider = () => {
     pauseOnFocus: false,
     // Breakpoints are max-width by default
     responsive: [
-      { breakpoint: 1200, settings: { slidesToShow: 3, arrows: false } }, // <=1200 keep 3 on large laptops
-      { breakpoint: 1024, settings: { slidesToShow: 2, arrows: false } }, // <=1024px (tablet)
-      { breakpoint: 768, settings: { slidesToShow: 1, arrows: false } }, // <=768px (most phones)
-      { breakpoint: 640, settings: { slidesToShow: 1, arrows: false } }, // <=640px (small phones)
+      { breakpoint: 1200, settings: { slidesToShow: 3, arrows: false } },
+      { breakpoint: 1024, settings: { slidesToShow: 2, arrows: false } },
+      { breakpoint: 768, settings: { slidesToShow: 1, arrows: false } },
+      { breakpoint: 640, settings: { slidesToShow: 1, arrows: false } },
     ],
   };
 
@@ -238,7 +256,7 @@ const UniversitySlider = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <Slider {...settings}>
+      <Slider key={`slides-${slidesToShow}`} {...settings}>
         {items.map((item) => (
           <div key={item.id} className="px-2">
             <div className={`relative group shadow-lg rounded-xl overflow-hidden h-36 md:h-40 transition-colors duration-300 ${
