@@ -212,19 +212,27 @@ const UniversitySlider = () => {
     dots: true,
     infinite: true,
     speed: 600,
-    slidesToShow: 3,
+    slidesToShow: 3, // default desktop/laptop
     slidesToScroll: 1,
     arrows: false,
     autoplay: true,
     autoplaySpeed: 3000,
     pauseOnHover: true,
     pauseOnFocus: false,
+    // Breakpoints are max-width by default
     responsive: [
-      { breakpoint: 1024, settings: { slidesToShow: 3, arrows: false } },
-      { breakpoint: 768, settings: { slidesToShow: 2, arrows: false } },
-      { breakpoint: 640, settings: { slidesToShow: 1, arrows: false } },
+      { breakpoint: 1024, settings: { slidesToShow: 2, arrows: false } }, // <=1024px (tablet)
+      { breakpoint: 640, settings: { slidesToShow: 1, arrows: false } }, // <=640px (phone)
     ],
   };
+
+  // Force slick to recalc on mount (fixes some mobile viewport quirks)
+  useEffect(() => {
+    const id = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+    return () => clearTimeout(id);
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -234,22 +242,25 @@ const UniversitySlider = () => {
             <div className={`relative group shadow-lg rounded-xl overflow-hidden h-36 md:h-40 transition-colors duration-300 ${
               isDarkMode ? 'bg-neutral-900' : 'bg-gray-300'
             }`}>
-              {/* Logo */}
-              <img
-                src={item.logo}
-                alt={item.name}
-                className="h-full w-full object-contain p-4"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextElementSibling.style.display = 'flex';
-                }}
-              />
-              
-              {/* Fallback text if logo fails to load */}
-              <div className={`h-full w-full flex items-center justify-center text-sm font-medium transition-colors duration-300 ${
-                isDarkMode ? 'text-white' : 'text-gray-800'
-              }`} style={{display: 'none'}}>
-                {item.name}
+              {/* Centered content wrapper for perfect vertical alignment */}
+              <div className="h-full w-full flex items-center justify-center p-4">
+                {/* Logo */}
+                <img
+                  src={item.logo}
+                  alt={item.name}
+                  className="max-h-full max-w-full object-contain"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextElementSibling.style.display = 'flex';
+                  }}
+                />
+                
+                {/* Fallback text if logo fails to load */}
+                <div className={`hidden h-full w-full items-center justify-center text-sm font-medium transition-colors duration-300 ${
+                  isDarkMode ? 'text-white' : 'text-gray-800'
+                }`}>
+                  {item.name}
+                </div>
               </div>
 
              {/* Overlay on hover */}

@@ -163,12 +163,17 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
           return;
         }
         const rect = panel.getBoundingClientRect();
-        const offset = 12; // px inside the panel
+        const styles = window.getComputedStyle(panel);
+        const padTop = parseFloat(styles.paddingTop || '0');
+        const padLeft = parseFloat(styles.paddingLeft || '0');
+        const extraInset = 16; // keep away from rounded corners/heading
         const buttonSize = 40; // w/h of the toggle
-        const minLeft = rect.left + offset;
-        const maxLeft = rect.right - buttonSize - offset;
-        const minTop = rect.top + offset;
-        const maxTop = rect.bottom - buttonSize - offset;
+
+        const minLeft = rect.left + padLeft + extraInset;
+        const maxLeft = rect.right - buttonSize - padLeft - extraInset;
+        const minTop = rect.top + padTop + extraInset;
+        const maxTop = rect.bottom - buttonSize - extraInset;
+
         setFloatPos({
           left: Math.max(minLeft, Math.min(maxLeft, minLeft)),
           top: Math.max(minTop, Math.min(maxTop, minTop)),
