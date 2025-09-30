@@ -153,33 +153,33 @@ const Sidebar = ({ initialCollapsed = false, onToggle }) => {
   }, [isDarkMode]);
 
   return (
-    <div className={`h-full flex-shrink-0 transition-[width] duration-300 shadow-2xl shadow-gray-900 ${collapsed ? 'w-18' : 'w-64'}`}>
+    <div className={`h-full flex-shrink-0 transition-[width] duration-300 shadow-2xl shadow-gray-900 ${collapsed ? 'w-14 md:w-18' : 'w-56 md:w-64'}`}>
       {/* Sidebar container */}
       <div className={`h-full w-full relative transition-colors duration-300 ${
         isDarkMode ? 'bg-black' : 'bg-gray-200'
       }`}>
         {/* Top branding + independent toggle */}
-        <div className="absolute top-2 left-3 right-3 flex items-center justify-between pt-2">
+        <div className="absolute top-0.5 left-2 right-2 md:left-3 md:right-3 flex items-center justify-between pt-0.5">
           {collapsed ? (
             // collapsed: one button with just the logo (acts as open)
-            <button aria-label="Open sidebar" onClick={handleToggle} className="inline-flex items-center mt-2 justify-center w-10 h-10 rounded-lg hover:bg-white/20">
-              <img src={ecampuss} alt="ecampus" className="w-11 h-11 object-contain" />
+            <button aria-label="Open sidebar" onClick={handleToggle} className="inline-flex items-center mt-1 md:mt-2 justify-center w-8 h-8 md:w-10 md:h-10 rounded-lg hover:bg-white/20">
+              <img src={ecampuss} alt="ecampus" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
             </button>
-          ) : (
+              ) : (
             // expanded: static logo + text on the left, separate close button on right
             <>
-              <div className="inline-flex items-center gap-2 px-1 h-12">
-                <img src={ecampus_logo} alt="ecampus" className="w-45 h-45 object-contain" />
-                {/* <span className={`font-semibold tracking-tight text-3xl transition-colors duration-300 ${
+              <div className="inline-flex items-center gap-1 md:gap-2 px-1 h-16 md:h-20">
+                <img src={ecampus_logo} alt="ecampus" className="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 object-contain" />
+                {/* <span className={`font-semibold tracking-tight text-xl md:text-2xl lg:text-3xl transition-colors duration-300 ${
                   isDarkMode ? 'text-white' : 'text-gray-800'
                 }`}>CAMPUS</span> */}
               </div>
-              <button aria-label="Close sidebar" onClick={handleToggle} className={`inline-flex items-center justify-center w-12 h-12 rounded-lg transition-colors duration-300 ${
+              <button aria-label="Close sidebar" onClick={handleToggle} className={`inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-lg transition-colors duration-300 ${
                 isDarkMode 
                   ? 'text-white/70 hover:bg-white/20' 
                   : 'text-gray-600 hover:bg-gray-300'
               }`}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-3 h-3 md:w-4 md:h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
@@ -188,7 +188,7 @@ const Sidebar = ({ initialCollapsed = false, onToggle }) => {
         </div>
 
         {/* Sidebar content area - direct in black background */}
-        <div className={`pt-20 px-3 flex flex-col h-full`}>
+        <div className={`pt-16 md:pt-20 px-2 md:px-3 flex flex-col h-full`}>
           {/* Navigation items */}
           <div className="flex flex-col gap-1 flex-1">
             <SidebarItem icon={NewChatButton} label="New Chat" collapsed={collapsed} isDarkMode={isDarkMode}/>
@@ -253,12 +253,12 @@ const SidebarItem = ({ icon: Icon, label, collapsed, isDarkMode = true }) => {
     : (isActive ? 'text-gray-800 font-semibold' : 'text-gray-600 group-hover:text-gray-800');
   
   return (
-    <button onClick={handleClick} className={`group flex items-center w-full gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
-      isDarkMode ? 'hover:bg-white/10' : 'hover:bg-gray-300/50'
+    <button onClick={handleClick} className={`group flex items-center w-full gap-2 md:gap-3 rounded-lg px-2 md:px-3 py-2 md:py-2.5 text-left transition-all duration-200 ${
+      isDarkMode ? 'hover:bg-white/15 hover:scale-[1.02]' : 'hover:bg-gray-300/70 hover:scale-[1.02]'
     }`}>
-      <Icon className={`w-6 h-6 flex-shrink-0 ${iconColor}`} />
+      <Icon className={`w-5 h-5 md:w-6 md:h-6 flex-shrink-0 transition-colors duration-200 ${iconColor}`} />
       <span
-        className={`text-sm overflow-hidden whitespace-nowrap transition-all duration-200 ${collapsed ? 'opacity-0 max-w-0' : 'opacity-100 max-w-[160px]'} ${textColor}`}
+        className={`text-xs md:text-sm overflow-hidden whitespace-nowrap transition-all duration-200 ${collapsed ? 'opacity-0 max-w-0' : 'opacity-100 max-w-[140px] md:max-w-[160px]'} ${textColor}`}
       >
         {label}
       </span>
