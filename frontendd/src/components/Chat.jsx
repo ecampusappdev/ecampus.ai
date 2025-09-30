@@ -54,7 +54,7 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMo
   };
 
   return (
-    <div className={`w-full flex flex-col items-center gap-4 ${isInChatMode ? 'max-w-4xl mx-auto px-2' : 'max-w-sm sm:max-w-md md:max-w-xl'}`}>
+    <div className={`w-full flex flex-col items-center gap-4 ${isInChatMode ? 'max-w-4xl mx-auto px-1 sm:px-2 md:px-3' : 'max-w-sm sm:max-w-md md:max-w-xl'}`}>
       {/* Input */}
       <form onSubmit={handleSubmit} className="relative w-full">
         <div className={`relative mt-3 rounded-[10px] px-3 py-2 border transition-all duration-300 flex items-stretch ${

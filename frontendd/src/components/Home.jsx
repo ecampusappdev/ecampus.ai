@@ -572,19 +572,19 @@ const Home = ({ __forceChatMode = false }) => {
                 {/* Mobile toggle inside grey panel */}
                 <button
                   onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
-                  className={`absolute left-3 top-3 md:hidden w-10 h-10 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                  className={`absolute left-3 top-3 md:hidden w-10 h-10 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'} z-10`}
                   aria-label="Open sidebar"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </button>
-                <h1 className={`absolute left-1/2 -translate-x-1/2 top-1 text-white/80 text-sm md:text-lg font-semibold transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>eCampus AI Chat</h1>
+                <h1 className={`absolute left-1/2 -translate-x-1/2 top-1 text-white/80 text-sm md:text-lg font-semibold transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'} z-0`}>eCampus AI Chat</h1>
                 <div className="flex items-center"></div>
               </div>
 
               {/* Chat messages */}
-              <div ref={scrollContainerRef} className="flex-1 w-full flex justify-center overflow-y-auto scrollbar-hidden py-2 min-h-0">
+              <div ref={scrollContainerRef} className="flex-1 w-full flex justify-center overflow-y-auto scrollbar-hidden pt-8 md:pt-10 pb-2 min-h-0">
                 <div className="w-full max-w-4xl px-2 md:px-3 space-y-2">
                   {throttledMessages.map((message, index) => (
                     <div
