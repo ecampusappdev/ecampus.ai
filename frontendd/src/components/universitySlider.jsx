@@ -214,15 +214,15 @@ const UniversitySlider = () => {
     speed: 600,
     slidesToShow: 3,
     slidesToScroll: 1,
-    arrows: true,
+    arrows: false,
     autoplay: true,
     autoplaySpeed: 3000,
     pauseOnHover: true,
     pauseOnFocus: false,
     responsive: [
-      { breakpoint: 1024, settings: { slidesToShow: 3, arrows: true } },
-      { breakpoint: 768, settings: { slidesToShow: 2, arrows: true } },
-      { breakpoint: 640, settings: { slidesToShow: 1, arrows: false, dots: true } },
+      { breakpoint: 1024, settings: { slidesToShow: 3, arrows: false } },
+      { breakpoint: 768, settings: { slidesToShow: 2, arrows: false } },
+      { breakpoint: 640, settings: { slidesToShow: 1, arrows: false } },
     ],
   };
 
@@ -231,7 +231,7 @@ const UniversitySlider = () => {
       <Slider {...settings}>
         {items.map((item) => (
           <div key={item.id} className="px-2">
-            <div className={`relative group shadow-lg rounded-xl overflow-hidden h-32 transition-colors duration-300 ${
+            <div className={`relative group shadow-lg rounded-xl overflow-hidden h-36 md:h-40 transition-colors duration-300 ${
               isDarkMode ? 'bg-neutral-900' : 'bg-gray-300'
             }`}>
               {/* Logo */}

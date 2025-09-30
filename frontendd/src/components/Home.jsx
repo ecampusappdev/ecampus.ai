@@ -550,16 +550,16 @@ const Home = ({ __forceChatMode = false }) => {
           ) : (
             <>
               {/* Header */}
-              <div className="w-full flex items-center justify-between py-2 md:py-3">
+              <div className="w-full relative flex items-center justify-between py-2 md:py-3">
                 <button
                   onClick={handleBackToHome}
-                  className="flex items-center justify-center w-10 h-10 text-white/70 hover:text-white transition-colors"
+                  className="hidden md:flex items-center justify-center w-10 h-10 text-white/70 hover:text-white transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <h1 className="text-white/80 text-sm md:text-lg font-semibold">eCampus AI Chat</h1>
+                <h1 className="absolute left-1/2 -translate-x-1/2 top-1 text-white/80 text-sm md:text-lg font-semibold">eCampus AI Chat</h1>
                 <div className="flex items-center">
                  
                 </div>

@@ -112,6 +112,7 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme ? savedTheme === 'dark' : true; // Default to dark if no preference
   });
+  const [floatPos, setFloatPos] = useState({ top: undefined, left: undefined });
 
   const handleToggle = () => {
     const next = !collapsed;
@@ -152,6 +153,41 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
     }
   }, [isDarkMode]);
 
+  // Keep floating toggle inside the grey panel bounds on mobile
+  useEffect(() => {
+    const recompute = () => {
+      try {
+        const panel = document.getElementById('mainPanel');
+        if (!panel) {
+          setFloatPos({ top: undefined, left: undefined });
+          return;
+        }
+        const rect = panel.getBoundingClientRect();
+        const offset = 12; // px inside the panel
+        const buttonSize = 40; // w/h of the toggle
+        const minLeft = rect.left + offset;
+        const maxLeft = rect.right - buttonSize - offset;
+        const minTop = rect.top + offset;
+        const maxTop = rect.bottom - buttonSize - offset;
+        setFloatPos({
+          left: Math.max(minLeft, Math.min(maxLeft, minLeft)),
+          top: Math.max(minTop, Math.min(maxTop, minTop)),
+        });
+      } catch (_) {
+        setFloatPos({ top: undefined, left: undefined });
+      }
+    };
+    recompute();
+    window.addEventListener('resize', recompute);
+    window.addEventListener('orientationchange', recompute);
+    window.addEventListener('scroll', recompute, { passive: true });
+    return () => {
+      window.removeEventListener('resize', recompute);
+      window.removeEventListener('orientationchange', recompute);
+      window.removeEventListener('scroll', recompute);
+    };
+  }, []);
+
   return (
     <>
       {/* Mobile overlay backdrop */}
@@ -166,7 +202,11 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
       {collapsed && (
         <button 
           onClick={handleToggle}
-          className="fixed top-6 left-3 z-50 md:hidden w-10 h-10 bg-black/80 hover:bg-black text-white rounded-lg flex items-center justify-center shadow-lg"
+          className="fixed z-50 md:hidden w-10 h-10 bg-black/80 hover:bg-black text-white rounded-lg flex items-center justify-center shadow-lg"
+          style={{
+            top: floatPos.top ?? 'calc(env(safe-area-inset-top) + 0.75rem)',
+            left: floatPos.left ?? 'calc(env(safe-area-inset-left) + 0.75rem)'
+          }}
           aria-label="Open sidebar"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,7 +216,7 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
       )}
       
       {/* Sidebar */}
-      <div className={`h-full transition-[width] duration-300 shadow-2xl shadow-gray-900 absolute left-0 top-0 z-50 md:relative md:flex-shrink-0 ${collapsed ? 'w-0 md:w-18' : 'w-80 md:w-56 lg:w-64'}`}>
+                <div className={`h-full transition-[width] duration-300 shadow-2xl shadow-gray-900 absolute left-0 top-0 z-50 md:relative md:flex-shrink-0 ${collapsed ? 'w-0 md:w-18' : 'w-64 md:w-56 lg:w-64'}`}>
       {/* Sidebar container */}
       <div className={`h-full w-full relative transition-colors duration-300 ${collapsed ? 'hidden md:block' : 'block'} ${
         isDarkMode ? 'bg-black' : 'bg-gray-200'

@@ -111,14 +111,14 @@ export default function ChatOnly() {
 
   return (
     <div className="h-full w-full flex flex-col items-center justify-center py-2 md:py-4 lg:py-6">
-      <div className="w-full h-[95vh] bg-neutral-800 rounded-[20px] flex flex-col items-center px-3 md:px-4 pb-3">
-        <div className="w-full flex items-center justify-between py-2 md:py-3">
-          <button onClick={() => navigate('/')} className="flex items-center justify-center w-10 h-10 text-white/70 hover:text-white transition-colors">
+      <div id="mainPanel" className="w-full h-[95vh] bg-neutral-800 rounded-[20px] flex flex-col items-center px-3 md:px-4 pb-3">
+        <div className="w-full relative flex items-center justify-between py-2 md:py-3">
+          <button onClick={() => navigate('/')} className="hidden md:flex items-center justify-center w-10 h-10 text-white/70 hover:text-white transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-white/80 text-sm md:text-lg font-semibold"> eCampus AI Chat</h1>
+          <h1 className="absolute left-1/2 -translate-x-1/2 top-1 text-white/80 text-sm md:text-lg font-semibold"> eCampus AI Chat</h1>
           <div className="w-12" />
         </div>
 

@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 
 const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMode = true }) => {
   const [query, setQuery] = useState("");
+  const [isMultiline, setIsMultiline] = useState(false);
   const textareaRef = useRef(null);
 
   const suggestions = [
@@ -20,6 +21,9 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMo
     if (!el) return;
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 200) + "px";
+    const computed = window.getComputedStyle(el);
+    const lineHeight = parseFloat(computed.lineHeight || "20");
+    setIsMultiline(el.scrollHeight > lineHeight + 2);
   }, [query]);
 
   const handleSubmit = async (e) => {
@@ -53,7 +57,7 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMo
     <div className={`w-full flex flex-col items-center gap-4 ${isInChatMode ? 'max-w-4xl mx-auto px-2' : 'max-w-sm sm:max-w-md md:max-w-xl'}`}>
       {/* Input */}
       <form onSubmit={handleSubmit} className="relative w-full">
-        <div className={`relative mt-3 rounded-[10px] px-3 py-2 border transition-all duration-300 flex items-end ${
+        <div className={`relative mt-3 rounded-[10px] px-3 py-2 border transition-all duration-300 flex items-stretch ${
           isDarkMode 
             ? 'bg-neutral-900 border-blue-900 focus-within:border-blue-400' 
             : 'bg-gray-200 border-gray-400 focus-within:border-blue-800'
@@ -63,7 +67,7 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMo
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={placeholder || "Ask anything about universities, courses, fees..."}
+            placeholder={placeholder || "Ask anything about online degree.."}
             rows={1}
             className={`flex-1 bg-transparent outline-none text-sm md:text-base resize-none leading-6 py-1 md:py-1.5 min-h-[32px] md:min-h-[40px] max-h-28 md:max-h-32 overflow-y-auto scrollbar-hidden transition-colors duration-300 ${
               isDarkMode 
@@ -75,10 +79,15 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMo
           <button
             type="submit"
             aria-label="Send"
-            className="ml-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 transition-colors flex-shrink-0"
+            className={`ml-2 rounded-full p-2 md:p-3 transition-colors flex-shrink-0 ${isMultiline ? 'self-end' : 'self-center'} ${
+              query.trim().length === 0
+                ? 'bg-gray-500 text-white/80'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+            disabled={query.trim().length === 0}
           >
             <svg
-              className="w-4 h-4"
+              className="w-3.5 h-3.5 md:w-4 md:h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
