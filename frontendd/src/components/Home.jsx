@@ -548,7 +548,7 @@ const Home = ({ __forceChatMode = false }) => {
                 <h1 className="text-white/75 text-2xl md:text-4xl font-semibold tracking-tight text-center mb-6">
                   Explore your best career path!!
                 </h1>
-                <div className='mt-4'>
+                <div className='mt-3 px-2 md:px-0'>
                   <Chat onSubmit={handleChatSubmit} placeholder={suggestedPlaceholder} />
                 </div>
               </div>
@@ -572,10 +572,10 @@ const Home = ({ __forceChatMode = false }) => {
                 {/* Mobile toggle inside grey panel */}
                 <button
                   onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
-                  className={`absolute left-3 top-3 md:hidden w-10 h-10 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'} z-10`}
+                  className={`absolute left-3 top-3 md:hidden w-8 h-8 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'} z-10`}
                   aria-label="Open sidebar"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </button>
@@ -740,7 +740,7 @@ const Home = ({ __forceChatMode = false }) => {
               </div>
 
               {/* Input */}
-              <div className="w-full flex-shrink-0 pt-1 pb-1">
+              <div className="w-full flex-shrink-0 pt-1 pb-1 px-3 md:px-0">
                 <Chat 
                   onSubmit={async (query) => {
                     const userMessage = { role: 'user', content: query };

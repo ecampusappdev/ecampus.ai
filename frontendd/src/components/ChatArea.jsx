@@ -41,10 +41,10 @@ export default function ChatArea({ onSubmit, placeholder }) {
         {/* Mobile toggle inside panel */}
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
-          className="absolute left-3 top-3 md:hidden w-10 h-10 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg"
+          className="absolute left-3 top-3 md:hidden w-8 h-8 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg"
           aria-label="Open sidebar"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -54,7 +54,7 @@ export default function ChatArea({ onSubmit, placeholder }) {
           }`}>
             Explore your best career path!!
           </h1>
-          <div className='mt-4'>
+          <div className='mt-4 px-3 md:px-0'>
             <Chat onSubmit={handleSubmit} placeholder={placeholder} isDarkMode={isDarkMode} />
           </div>
         </div>
