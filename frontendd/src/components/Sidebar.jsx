@@ -105,7 +105,7 @@ import ecampus_logo from '../assets/ecampus_logo.png';
 // - Clean black design matching the Bloom interface
 // - Parent can control with props, or it manages its own collapsed state
 
-const Sidebar = ({ initialCollapsed = false, onToggle }) => {
+const Sidebar = ({ initialCollapsed = true, onToggle }) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   // Initialize theme from localStorage immediately to prevent flash
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -162,10 +162,23 @@ const Sidebar = ({ initialCollapsed = false, onToggle }) => {
         />
       )}
       
+      {/* Mobile floating toggle button - only visible when collapsed on mobile */}
+      {collapsed && (
+        <button 
+          onClick={handleToggle}
+          className="fixed top-6 left-3 z-50 md:hidden w-10 h-10 bg-black/80 hover:bg-black text-white rounded-lg flex items-center justify-center shadow-lg"
+          aria-label="Open sidebar"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      )}
+      
       {/* Sidebar */}
-      <div className={`h-full flex-shrink-0 transition-[width] duration-300 shadow-2xl shadow-gray-900 relative z-50 md:relative ${collapsed ? 'w-14 md:w-18' : 'w-80 md:w-56 lg:w-64'}`}>
+      <div className={`h-full transition-[width] duration-300 shadow-2xl shadow-gray-900 absolute left-0 top-0 z-50 md:relative md:flex-shrink-0 ${collapsed ? 'w-0 md:w-18' : 'w-80 md:w-56 lg:w-64'}`}>
       {/* Sidebar container */}
-      <div className={`h-full w-full relative transition-colors duration-300 ${
+      <div className={`h-full w-full relative transition-colors duration-300 ${collapsed ? 'hidden md:block' : 'block'} ${
         isDarkMode ? 'bg-black' : 'bg-gray-200'
       }`}>
         {/* Top branding + independent toggle */}

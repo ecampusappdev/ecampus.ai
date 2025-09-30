@@ -25,11 +25,11 @@ export default function Layout() {
   }, []);
 
   return (
-    <div className={`h-screen flex transition-colors duration-300 ${
+    <div className={`h-screen relative md:flex transition-colors duration-300 ${
       isDarkMode ? 'bg-black' : 'bg-gray-200'
     }`}>
       <Sidebar />
-      <main className={`flex-1 overflow-hidden transition-colors duration-300 ${
+      <main className={`w-full h-full md:flex-1 overflow-hidden transition-colors duration-300 ${
         isDarkMode ? 'bg-black' : 'bg-gray-200'
       }`}>
         <Outlet />
