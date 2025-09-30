@@ -153,7 +153,17 @@ const Sidebar = ({ initialCollapsed = false, onToggle }) => {
   }, [isDarkMode]);
 
   return (
-    <div className={`h-full flex-shrink-0 transition-[width] duration-300 shadow-2xl shadow-gray-900 ${collapsed ? 'w-14 md:w-18' : 'w-80 sm:w-80 md:w-56 lg:w-64'}`}>
+    <>
+      {/* Mobile overlay backdrop */}
+      {!collapsed && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={handleToggle}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`h-full flex-shrink-0 transition-[width] duration-300 shadow-2xl shadow-gray-900 relative z-50 md:relative ${collapsed ? 'w-14 md:w-18' : 'w-80 md:w-56 lg:w-64'}`}>
       {/* Sidebar container */}
       <div className={`h-full w-full relative transition-colors duration-300 ${
         isDarkMode ? 'bg-black' : 'bg-gray-200'
@@ -228,7 +238,8 @@ const Sidebar = ({ initialCollapsed = false, onToggle }) => {
           </div> */}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
