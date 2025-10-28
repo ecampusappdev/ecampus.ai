@@ -49,10 +49,10 @@ export default function ChatArea({ onSubmit, placeholder }) {
           </svg>
         </button>
         <div className="flex-1 w-full flex flex-col items-center justify-center">
-          <h1 className={`text-2xl md:text-4xl font-semibold tracking-tight text-center mb-6 transition-colors duration-300 ${
-            isDarkMode ? 'text-white/75' : 'text-gray-800'
+          <h1 className={`font-sans text-2xl sm:text-3xl md:text-4xl font-semibold sm:font-bold md:font-extrabold tracking-tight text-center mt-12 mb-6 transition-colors duration-300 ${
+            isDarkMode ? 'text-gray-100' : 'text-gray-900'
           }`}>
-            Explore your best career path!!
+            Find your perfect online degree in <span className="text-blue-400 font-semibold">60 seconds</span>
           </h1>
           <div className='mt-4 px-3 md:px-0'>
             <Chat onSubmit={handleSubmit} placeholder={placeholder} isDarkMode={isDarkMode} />
