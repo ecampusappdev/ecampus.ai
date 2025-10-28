@@ -69,6 +69,10 @@
     margin: 3px 0;
     line-height: 1.55;
   }
+  /* Ensure a clear gap after tables inside assistant messages */
+  .chat-message table {
+    margin-bottom: 1rem; /* one line gap below table */
+  }
 }
 
 /* Dark theme color pass to match requested style */

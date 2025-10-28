@@ -14,6 +14,7 @@ export default function ChatOnly() {
   const [suggestedPlaceholder, setSuggestedPlaceholder] = useState("");
   const [feedbackMap, setFeedbackMap] = useState({});
   const [finalizedMap, setFinalizedMap] = useState({});
+  const [relatedMap, setRelatedMap] = useState({}); // { [index]: string[] }
   const [copiedMap, setCopiedMap] = useState({});
   const [condensedMap, setCondensedMap] = useState({});
   const messagesEndRef = useRef(null);
@@ -97,6 +98,9 @@ export default function ChatOnly() {
         return copy;
       });
       setFinalizedMap(prev => ({ ...prev, [placeholderIndex]: true }));
+      if (Array.isArray(followUpQuestions) && followUpQuestions.length > 0) {
+        setRelatedMap(prev => ({ ...prev, [placeholderIndex]: followUpQuestions.slice(0, 6) }));
+      }
 
       try {
         const text = fullResponse || '';
@@ -219,6 +223,32 @@ export default function ChatOnly() {
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={feedbackMap[index] === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={`w-4 h-4 rotate-180 ${feedbackMap[index] === 'down' ? 'text-white' : 'text-white/80'}`}> <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21h-3A1.5 1.5 0 0 1 3 19.5v-7A1.5 1.5 0 0 1 4.5 11h3V21Zm3-10.5 3.75-6.5a1.5 1.5 0 0 1 2.63 1.5L15.75 9h3.38a1.5 1.5 0 0 1 1.48 1.74l-1.2 7.2A2.25 2.25 0 0 1 17.17 20H10.5V10.5Z" /></svg>
                       </button>
+                    </div>
+                  )}
+                  {message.role !== 'user' && finalizedMap[index] && Array.isArray(relatedMap[index]) && relatedMap[index].length > 0 && (
+                    <div className="mt-4 border-t border-white/10 pt-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-6 h-6 md:w-7 md:h-7 text-white/80">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 8l8-4 8 4-8 4-8-4zM4 16l8 4 8-4M4 12l8 4 8-4" />
+                        </svg>
+                        <div className="text-base md:text-lg font-semibold uppercase tracking-wide text-white/85">Related</div>
+                      </div>
+                      <div className="flex flex-col divide-y divide-white/10">
+                        {relatedMap[index].map((q, i) => (
+                          <button
+                            key={i}
+                            onClick={() => handleChatSubmit(q)}
+                            className="group cursor-pointer w-full flex items-center justify-between gap-3 py-2 text-left text-white/85 hover:text-white hover:bg-white/5 px-2 rounded-md"
+                          >
+                            <span className="truncate">{q}</span>
+                            <span className="flex-shrink-0 text-white/70 group-hover:text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4.5 h-4.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
+                              </svg>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -441,12 +441,47 @@ Your role is to act like a **helpful career counselor** who gives accurate, trus
       }
     }
 
+    // After primary stream, ask the model for concise related questions
+    let followUps = [];
+    try {
+      const relatedPrompt = [
+        { role: 'system', content: 'You generate helpful, concise, on-topic related questions for a Q&A chat. Return ONLY a compact JSON array of 4-6 short questions, no markdown, no commentary.' },
+        { role: 'user', content: `Previous user question: ${question}\n\nAssistant answer (for context): ${fullResponse}\n\nNow produce 5 related follow-up questions that the user might ask next. Keep each under 120 characters.` }
+      ];
+      const rl = await openaiClient.chat.completions.create({
+        model: modelFromEnv,
+        messages: relatedPrompt,
+        temperature: 0.7,
+        max_tokens: 400,
+      });
+      const raw = rl.choices?.[0]?.message?.content?.trim() || '';
+      // Try to parse a JSON array from the model output safely
+      const jsonMatch = raw.match(/\[([\s\S]*)\]$/);
+      const toParse = jsonMatch ? `[${jsonMatch[1]}]` : raw;
+      const parsed = JSON.parse(toParse);
+      if (Array.isArray(parsed)) {
+        followUps = parsed
+          .map((s) => String(s).trim())
+          .filter((s) => s.length > 0)
+          .slice(0, 6);
+      }
+    } catch (e) {
+      // Fallback: attempt simple heuristic extraction of lines
+      try {
+        followUps = (fullResponse || '')
+          .split('\n')
+          .map((l) => l.replace(/^[-•]\s*/, '').trim())
+          .filter((l) => /\?$/.test(l))
+          .slice(0, 5);
+      } catch (_) {}
+    }
 
-        res.write(`data: ${JSON.stringify({ 
-          content: '', 
-          full: true, 
-          fullResponse: fullResponse,
-        })}\n\n`);
+    res.write(`data: ${JSON.stringify({ 
+      content: '', 
+      full: true, 
+      fullResponse: fullResponse,
+      followUpQuestions: followUps,
+    })}\n\n`);
     res.end();
   } catch (error) {
     console.error('Error in /api/query:', error);

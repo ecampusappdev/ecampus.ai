@@ -79,7 +79,7 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMo
           <button
             type="submit"
             aria-label="Send"
-            className={`ml-2 rounded-full p-2 md:p-3 transition-colors flex-shrink-0 ${isMultiline ? 'self-end' : 'self-center'} ${
+            className={`ml-2 rounded-full p-2 md:p-2.5 transition-colors flex-shrink-0 self-center ${
               query.trim().length === 0
                 ? 'bg-gray-500 text-white/80'
                 : 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -87,7 +87,7 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMo
             disabled={query.trim().length === 0}
           >
             <svg
-              className="w-3.5 h-3.5 md:w-4 md:h-4"
+              className="w-3.5 h-3.5 md:w-3.5 md:h-3.5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

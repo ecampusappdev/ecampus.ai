@@ -237,6 +237,7 @@ const Home = ({ __forceChatMode = false }) => {
   const [copiedMap, setCopiedMap] = useState({}); // { [index]: true when copied }
   const scrollContainerRef = useRef(null);
   const isAtBottomRef = useRef(true);
+  const [relatedMap, setRelatedMap] = useState({}); // { [index]: string[] }
   // Initialize theme from localStorage immediately to prevent flash
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -494,6 +495,9 @@ const Home = ({ __forceChatMode = false }) => {
       });
       // Mark this assistant message as finalized so actions can appear
       setFinalizedMap(prev => ({ ...prev, [placeholderIndex]: true }));
+      if (Array.isArray(followUpQuestions) && followUpQuestions.length > 0) {
+        setRelatedMap(prev => ({ ...prev, [placeholderIndex]: followUpQuestions.slice(0, 6) }));
+      }
 
       // Handle follow-ups
       try {
@@ -757,6 +761,36 @@ const Home = ({ __forceChatMode = false }) => {
                               </svg>
                             </button>
                             <span className="text-xs text-white/50" data-feedback-down-count></span>
+                          </div>
+                        )}
+                        {message.role !== 'user' && finalizedMap[index] && Array.isArray(relatedMap[index]) && relatedMap[index].length > 0 && (
+                          <div className="mt-4 border-t border-white/10 pt-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={`${isDarkMode ? 'text-white/80' : 'text-gray-700'} w-6 h-6 md:w-7 md:h-7`}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 8l8-4 8 4-8 4-8-4zM4 16l8 4 8-4M4 12l8 4 8-4" />
+                              </svg>
+                              <div className={`text-base md:text-lg font-semibold uppercase tracking-wide ${isDarkMode ? 'text-white/85' : 'text-gray-800'}`}>Related</div>
+                            </div>
+                            <div className="flex flex-col divide-y divide-white/10">
+                              {relatedMap[index].map((q, i) => (
+                                <button
+                                  key={i}
+                                  onClick={async () => {
+                                    const userMessage = { role: 'user', content: q };
+                                    setMessages(prev => [...prev, userMessage]);
+                                    await handleQuery(q, messages);
+                                  }}
+                                  className={`group cursor-pointer w-full flex items-center justify-between gap-3 py-2 px-2 rounded-md ${isDarkMode ? 'text-white/85 hover:text-white hover:bg-white/5' : 'text-gray-800 hover:text-black hover:bg-gray-200'}`}
+                                >
+                                  <span className="truncate">{q}</span>
+                                  <span className={`${isDarkMode ? 'text-white/70' : 'text-gray-700'} opacity-0 group-hover:opacity-100 transition-opacity duration-150`}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4.5 h-4.5">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
+                                    </svg>
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
