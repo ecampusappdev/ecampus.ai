@@ -78,10 +78,14 @@
 /* Responsive tables: enable horizontal scroll on small screens */
 @media (max-width: 767px) {
   .chat-message {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: visible; /* don't scroll the whole message */
   }
   .chat-message table {
+    display: block; /* allow overflow on the element itself */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain; /* prevent scroll chaining to page */
+    touch-action: pan-x; /* capture horizontal swipes */
     min-width: 720px; /* wider than viewport to allow scrolling */
     width: max-content;
   }

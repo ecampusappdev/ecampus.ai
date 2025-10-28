@@ -187,11 +187,13 @@ const Home = ({ __forceChatMode = false }) => {
   // Function to get memoized components for a specific message index with smooth transitions
   const getComponentsForMessage = useCallback((messageIndex) => ({
     table: ({ node, ...props }) => (
-      <table className={`table-fixed w-full border-collapse transition-all duration-200 ${condensedMap[messageIndex] ? 'text-[12px] md:text-[13px]' : 'text-[14px] md:text-[15px]'}`} {...props} />
+      <div className="overflow-x-auto -mx-2 md:mx-0">
+        <table className={`border-collapse transition-all duration-200 min-w-[720px] ${condensedMap[messageIndex] ? 'text-[12px] md:text-[13px]' : 'text-[14px] md:text-[15px]'}`} {...props} />
+      </div>
     ),
     th: ({ node, ...props }) => (
       <th
-        className={`border ${condensedMap[messageIndex] ? 'px-2 py-1' : 'px-3 py-2'} text-left break-words whitespace-normal transition-all duration-200 ${
+        className={`border ${condensedMap[messageIndex] ? 'px-2 py-1' : 'px-3 py-2'} text-left break-words whitespace-nowrap md:whitespace-normal transition-all duration-200 ${
           isDarkMode 
             ? 'bg-gray-700 border-white/20 text-white' 
             : 'bg-gray-600 border-gray-300 text-white'
@@ -201,7 +203,7 @@ const Home = ({ __forceChatMode = false }) => {
     ),
     td: ({ node, ...props }) => (
       <td
-        className={`border ${condensedMap[messageIndex] ? 'px-2 py-1' : 'px-3 py-2'} break-words whitespace-normal transition-all duration-200 ${
+        className={`border ${condensedMap[messageIndex] ? 'px-2 py-1' : 'px-3 py-2'} break-words whitespace-nowrap md:whitespace-normal transition-all duration-200 ${
           isDarkMode 
             ? 'border-white/20 text-white/90' 
             : 'border-gray-300 text-gray-800'
@@ -435,11 +437,11 @@ const Home = ({ __forceChatMode = false }) => {
                                 isDarkMode ? 'text-white/90' : 'text-gray-800'
                               }`
                         }`}
-                        style={{ overflowX: message.role !== 'user' ? 'auto' : 'hidden' }}
+                        style={{ overflowX: 'hidden' }}
                         classNameGroup
                         data-message-index={index}
                       >
-                        <div className={`prose max-w-none overflow-x-auto scrollbar-hidden transition-opacity duration-300 ${
+                        <div className={`prose max-w-none scrollbar-hidden transition-opacity duration-300 ${
                           isDarkMode ? 'prose-invert' : 'prose-gray'
                         } ${isLoading && index === throttledMessages.length - 1 && !finalizedMap[index] ? 'opacity-90' : 'opacity-100'}`}>
                           <ReactMarkdown

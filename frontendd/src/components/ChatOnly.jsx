@@ -180,8 +180,25 @@ export default function ChatOnly() {
                   className={`rounded-lg md:rounded-xl text-sm md:text-base leading-relaxed ${message.role === 'user' ? 'max-w-[85%] px-3 md:px-3.5 py-1.5 md:py-2.5 my-3 md:my-5 bg-slate-500 text-white' : 'max-w-full p-0 bg-transparent text-white/90 border-0 chat-message rounded-none'}`}
                   style={{ overflowX: message.role !== 'user' ? 'auto' : 'hidden' }}
                 >
-                  <div className="prose prose-invert max-w-none overflow-x-auto scrollbar-hidden">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                  <div className="prose prose-invert max-w-none scrollbar-hidden">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        table: ({ node, ...props }) => (
+                          <div className="overflow-x-auto -mx-2 md:mx-0">
+                            <table className="min-w-[720px] border-collapse" {...props} />
+                          </div>
+                        ),
+                        th: ({ node, ...props }) => (
+                          <th className="whitespace-nowrap md:whitespace-normal" {...props} />
+                        ),
+                        td: ({ node, ...props }) => (
+                          <td className="whitespace-nowrap md:whitespace-normal" {...props} />
+                        )
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
                   </div>
 
                   {message.role !== 'user' && message.content && (
