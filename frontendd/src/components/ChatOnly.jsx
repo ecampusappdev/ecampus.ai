@@ -186,7 +186,7 @@ export default function ChatOnly() {
                       components={{
                         table: ({ node, ...props }) => (
                           <div className="overflow-x-auto -mx-2 md:mx-0">
-                            <table className="min-w-[720px] border-collapse" {...props} />
+                            <table className="border-collapse" {...props} />
                           </div>
                         ),
                         th: ({ node, ...props }) => (

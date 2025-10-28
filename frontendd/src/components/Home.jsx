@@ -188,7 +188,7 @@ const Home = ({ __forceChatMode = false }) => {
   const getComponentsForMessage = useCallback((messageIndex) => ({
     table: ({ node, ...props }) => (
       <div className="overflow-x-auto -mx-2 md:mx-0">
-        <table className={`border-collapse transition-all duration-200 min-w-[720px] ${condensedMap[messageIndex] ? 'text-[12px] md:text-[13px]' : 'text-[14px] md:text-[15px]'}`} {...props} />
+        <table className={`border-collapse transition-all duration-200 ${condensedMap[messageIndex] ? 'text-[12px] md:text-[13px]' : 'text-[14px] md:text-[15px]'}`} {...props} />
       </div>
     ),
     th: ({ node, ...props }) => (

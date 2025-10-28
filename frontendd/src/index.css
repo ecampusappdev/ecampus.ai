@@ -85,9 +85,8 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain; /* prevent scroll chaining to page */
-    touch-action: pan-x; /* capture horizontal swipes */
-    min-width: 720px; /* wider than viewport to allow scrolling */
-    width: max-content;
+    touch-action: auto; /* allow both pan-x and pan-y so vertical scroll works */
+    width: auto; /* don't force page width based on table */
   }
   .chat-message th,
   .chat-message td {
