@@ -75,6 +75,22 @@
   }
 }
 
+/* Responsive tables: enable horizontal scroll on small screens */
+@media (max-width: 767px) {
+  .chat-message {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .chat-message table {
+    min-width: 720px; /* wider than viewport to allow scrolling */
+    width: max-content;
+  }
+  .chat-message th,
+  .chat-message td {
+    white-space: nowrap; /* avoid tall cells caused by wrapping */
+  }
+}
+
 /* Dark theme color pass to match requested style */
 @layer components {
   .chat-table {

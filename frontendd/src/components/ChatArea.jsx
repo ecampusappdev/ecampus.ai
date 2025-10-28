@@ -41,10 +41,10 @@ export default function ChatArea({ onSubmit, placeholder }) {
         {/* Mobile toggle inside panel */}
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
-          className="absolute left-3 top-3 md:hidden w-8 h-8 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg"
+          className="absolute left-3 top-3 md:hidden w-10 h-10 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg"
           aria-label="Open sidebar"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -52,7 +52,8 @@ export default function ChatArea({ onSubmit, placeholder }) {
           <h1 className={`font-sans text-2xl sm:text-3xl md:text-4xl font-semibold sm:font-bold md:font-extrabold tracking-tight text-center mt-12 mb-6 transition-colors duration-300 ${
             isDarkMode ? 'text-gray-100' : 'text-gray-900'
           }`}>
-            Find your perfect online degree in <span className="text-blue-400 font-semibold">60 seconds</span>
+            Find your perfect
+            <span className="block md:inline"> online degree in <span className="text-[#fd3329] font-semibold">60 seconds</span></span>
           </h1>
           <div className='mt-4 px-3 md:px-0'>
             <Chat onSubmit={handleSubmit} placeholder={placeholder} isDarkMode={isDarkMode} />

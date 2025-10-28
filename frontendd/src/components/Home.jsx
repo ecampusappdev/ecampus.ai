@@ -572,8 +572,8 @@ const Home = ({ __forceChatMode = false }) => {
                                   className={`group cursor-pointer w-full flex items-center justify-between gap-3 py-2 px-2 rounded-md ${isDarkMode ? 'text-white/85 hover:text-white hover:bg-white/5' : 'text-gray-800 hover:text-black hover:bg-gray-200'}`}
                                 >
                                   <span className="truncate">{q}</span>
-                                  <span className={`${isDarkMode ? 'text-white/70' : 'text-gray-700'} opacity-0 group-hover:opacity-100 transition-opacity duration-150`}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4.5 h-4.5">
+                                  <span className={`${isDarkMode ? 'text-white/70' : 'text-gray-700'} cursor-pointer`}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4.5 h-4.5 cursor-pointer">
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
                                     </svg>
                                   </span>
@@ -615,6 +615,11 @@ const Home = ({ __forceChatMode = false }) => {
                   placeholder={suggestedPlaceholder}
                   isDarkMode={isDarkMode}
                 />
+                {throttledMessages.some(m => m.role !== 'user') && (
+                  <p className={`mt-2 text-center text-[11px] md:text-xs ${isDarkMode ? 'text-white/50' : 'text-gray-600'}`}>
+                    eCampusAI can make mistakes. Please double-check responses.
+                  </p>
+                )}
               </div>
             </>
           )}

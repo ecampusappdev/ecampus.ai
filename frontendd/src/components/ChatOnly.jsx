@@ -148,10 +148,10 @@ export default function ChatOnly() {
         {/* Mobile toggle inside panel */}
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
-          className="absolute left-2 top-2 md:hidden w-10 h-10 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg"
+          className="absolute left-2 top-2 md:hidden w-12 h-12 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg"
           aria-label="Open sidebar"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -241,8 +241,8 @@ export default function ChatOnly() {
                             className="group cursor-pointer w-full flex items-center justify-between gap-3 py-2 text-left text-white/85 hover:text-white hover:bg-white/5 px-2 rounded-md"
                           >
                             <span className="truncate">{q}</span>
-                            <span className="flex-shrink-0 text-white/70 group-hover:text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4.5 h-4.5">
+                            <span className="flex-shrink-0 text-white/70 group-hover:text-white cursor-pointer">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4.5 h-4.5 cursor-pointer">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
                               </svg>
                             </span>
@@ -276,6 +276,11 @@ export default function ChatOnly() {
         {/* Input */}
         <div className="w-full flex-shrink-0 pt-1 pb-1">
           <Chat onSubmit={handleChatSubmit} isInChatMode={true} placeholder={suggestedPlaceholder} />
+          {messages.some(m => m.role !== 'user') && (
+            <p className="mt-2 text-center text-[11px] md:text-xs text-white/50">
+              eCampusAI can make mistakes. Please double-check responses.
+            </p>
+          )}
         </div>
       </div>
     </div>

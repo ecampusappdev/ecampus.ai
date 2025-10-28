@@ -110,7 +110,7 @@ const Chat = ({ onSubmit = () => {}, isInChatMode = false, placeholder, isDarkMo
             <button
               key={i}
               onClick={() => handleSuggestionClick(s)}
-              className={`px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 text-xs sm:text-sm rounded-full shadow-md transition-colors duration-300 ${
+              className={`px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 text-base sm:text-base md:text-lg rounded-full shadow-md transition-colors duration-300 ${
                 isDarkMode 
                   ? 'bg-neutral-800 hover:bg-neutral-700 text-white' 
                   : 'bg-gray-200 hover:bg-gray-400 text-gray-800'
