@@ -22,6 +22,7 @@ export async function askQuery(question, conversationHistory = [], onDelta) {
   let aggregated = '';
   let finalFullResponse = '';
   let finalFollowUps = [];
+  let finalSources = [];
 
   while (true) {
     const { value, done } = await reader.read();
@@ -43,6 +44,7 @@ export async function askQuery(question, conversationHistory = [], onDelta) {
           // Server signals final payload with fullResponse and follow-ups
           if (evt.fullResponse) finalFullResponse = evt.fullResponse;
           if (Array.isArray(evt.followUpQuestions)) finalFollowUps = evt.followUpQuestions;
+          if (Array.isArray(evt.sources)) finalSources = evt.sources;
         } else if (evt.content) {
           aggregated += evt.content;
           if (onDelta) onDelta(evt.content);
@@ -54,7 +56,7 @@ export async function askQuery(question, conversationHistory = [], onDelta) {
   }
 
   const finalText = finalFullResponse || aggregated.trim();
-  return { fullResponse: finalText, followUpQuestions: finalFollowUps };
+  return { fullResponse: finalText, followUpQuestions: finalFollowUps, sources: finalSources };
 }
 
 export async function saveLead(payload) {
@@ -87,4 +89,12 @@ export async function fetchFeedbackStats(message) {
   const res = await fetch(`${API_BASE}/feedback/stats?${params.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch stats');
   return res.json();
+}
+
+export async function fetchSources(question) {
+  const params = new URLSearchParams({ question });
+  const res = await fetch(`${API_BASE}/sources?${params.toString()}`);
+  if (!res.ok) throw new Error('Failed to fetch sources');
+  const data = await res.json();
+  return Array.isArray(data?.sources) ? data.sources : [];
 }

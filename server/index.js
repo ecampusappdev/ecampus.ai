@@ -443,6 +443,7 @@ Your role is to act like a **helpful career counselor** who gives accurate, trus
 
     // After primary stream, ask the model for concise related questions
     let followUps = [];
+    let sources = [];
     try {
       const relatedPrompt = [
         { role: 'system', content: 'You generate helpful, concise, on-topic related questions for a Q&A chat. Return ONLY a compact JSON array of 4-6 short questions, no markdown, no commentary.' },
@@ -465,6 +466,34 @@ Your role is to act like a **helpful career counselor** who gives accurate, trus
           .filter((s) => s.length > 0)
           .slice(0, 6);
       }
+      // Also request compact list of credible sources (URLs only)
+      try {
+        const sourcesPrompt = [
+          { role: 'system', content: 'Return ONLY a compact JSON array (no markdown) of 3-6 credible, recent web sources (objects with url and optional title) that best support answering the user question. Prefer authoritative university, gov, or reputed sites. Keep titles short.' },
+          { role: 'user', content: `User question: ${question}` }
+        ];
+        const sr = await openaiClient.chat.completions.create({
+          model: modelFromEnv,
+          messages: sourcesPrompt,
+          temperature: 0.3,
+          max_tokens: 400,
+        });
+        const rawS = sr.choices?.[0]?.message?.content?.trim() || '';
+        const jsonMatchS = rawS.match(/\[([\s\S]*)\]$/);
+        const toParseS = jsonMatchS ? `[${jsonMatchS[1]}]` : rawS;
+        const parsedS = JSON.parse(toParseS);
+        if (Array.isArray(parsedS)) {
+          sources = parsedS
+            .map((it) => {
+              if (typeof it === 'string') return { url: it };
+              const url = typeof it?.url === 'string' ? it.url : '';
+              const title = typeof it?.title === 'string' ? it.title : undefined;
+              return url ? { url, title } : null;
+            })
+            .filter(Boolean)
+            .slice(0, 6);
+        }
+      } catch (_) {}
     } catch (e) {
       // Fallback: attempt simple heuristic extraction of lines
       try {
@@ -481,6 +510,7 @@ Your role is to act like a **helpful career counselor** who gives accurate, trus
       full: true, 
       fullResponse: fullResponse,
       followUpQuestions: followUps,
+      sources: sources,
     })}\n\n`);
     res.end();
   } catch (error) {
@@ -493,6 +523,48 @@ Your role is to act like a **helpful career counselor** who gives accurate, trus
     } else {
       res.status(500).json({ error: 'Failed to get response from AI' });
     }
+  }
+});
+
+// Lightweight sources endpoint to fetch credible links early (non-streaming)
+app.get('/api/sources', async (req, res) => {
+  try {
+    const question = String(req.query?.question || '').trim();
+    if (!question) return res.status(400).json({ error: 'question is required' });
+    if (!openaiApiKey) return res.status(500).json({ error: 'Server not configured: missing OPENAI_API_KEY' });
+
+    const sourcesPrompt = [
+      { role: 'system', content: 'Return ONLY a compact JSON array (no markdown) of 3-6 credible, recent web sources (objects with url and optional title) that best support answering the user question. Prefer authoritative university, gov, or reputed sites. Keep titles short.' },
+      { role: 'user', content: `User question: ${question}` }
+    ];
+    const sr = await openaiClient.chat.completions.create({
+      model: modelFromEnv,
+      messages: sourcesPrompt,
+      temperature: 0.3,
+      max_tokens: 400,
+    });
+    const raw = sr.choices?.[0]?.message?.content?.trim() || '';
+    const jsonMatch = raw.match(/\[([\s\S]*)\]$/);
+    const toParse = jsonMatch ? `[${jsonMatch[1]}]` : raw;
+    let sources = [];
+    try {
+      const parsed = JSON.parse(toParse);
+      if (Array.isArray(parsed)) {
+        sources = parsed
+          .map((it) => {
+            if (typeof it === 'string') return { url: it };
+            const url = typeof it?.url === 'string' ? it.url : '';
+            const title = typeof it?.title === 'string' ? it.title : undefined;
+            return url ? { url, title } : null;
+          })
+          .filter(Boolean)
+          .slice(0, 6);
+      }
+    } catch (_) {}
+    res.json({ sources });
+  } catch (error) {
+    console.error('Error in /api/sources:', error);
+    res.status(500).json({ error: 'Failed to fetch sources' });
   }
 });
 

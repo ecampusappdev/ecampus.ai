@@ -8,6 +8,8 @@ import UniversitySlider from './universitySlider';
 import { askQuery } from "../lib/api";
 import { submitFeedback, fetchFeedbackStats } from "../lib/api";
 import Sidebar from './Sidebar.jsx';
+import SourcesBar from './SourcesBar.jsx';
+import { fetchSources } from '../lib/api';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -26,6 +28,7 @@ const Home = ({ __forceChatMode = false }) => {
   const scrollContainerRef = useRef(null);
   const isAtBottomRef = useRef(true);
   const [relatedMap, setRelatedMap] = useState({}); // { [index]: string[] }
+  const [sourcesMap, setSourcesMap] = useState({}); // { [index]: Array<{url, title?}> }
   // Initialize theme from localStorage immediately to prevent flash
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -184,6 +187,15 @@ const Home = ({ __forceChatMode = false }) => {
     return processed;
   };
 
+  const extractSources = (text) => {
+    if (!text) return [];
+    const urls = Array.from(new Set(
+      (text.match(/https?:\/\/[^\s)]+/gi) || [])
+        .map(u => u.replace(/[)\]\.,]+$/g, ''))
+    ));
+    return urls.map(url => ({ url }));
+  };
+
   // Function to get memoized components for a specific message index with smooth transitions
   const getComponentsForMessage = useCallback((messageIndex) => ({
     table: ({ node, ...props }) => (
@@ -267,9 +279,22 @@ const Home = ({ __forceChatMode = false }) => {
       const placeholderIndex = messages.length + 1; // after user message appended by caller
       setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-      const { fullResponse, followUpQuestions } = await askQuery(queryText, conversationHistory, (delta) => {
+      // Kick off early sources fetch in parallel (do not await)
+      (async () => {
+        try {
+          const early = await fetchSources(queryText);
+          if (Array.isArray(early) && early.length > 0) {
+            setSourcesMap(prev => ({ ...prev, [placeholderIndex]: early }));
+          }
+        } catch (_) {}
+      })();
+
+      const { fullResponse, followUpQuestions, sources: serverSources } = await askQuery(queryText, conversationHistory, (delta) => {
         liveText += delta;
-        const processedLive = processResponse(liveText);
+        // Reveal only completed lines while streaming
+        const parts = liveText.split('\n');
+        const completed = parts.length > 1 ? parts.slice(0, -1).join('\n') : '';
+        const processedLive = processResponse(completed);
         setMessages(prev => {
           const copy = [...prev];
           copy[copy.length - 1] = { role: 'assistant', content: processedLive };
@@ -285,6 +310,14 @@ const Home = ({ __forceChatMode = false }) => {
       });
       // Mark this assistant message as finalized so actions can appear
       setFinalizedMap(prev => ({ ...prev, [placeholderIndex]: true }));
+      // Extract sources for this assistant message
+      try {
+        const sources = extractSources(processedResponse);
+        const merged = Array.isArray(serverSources) && serverSources.length > 0
+          ? [...serverSources, ...sources]
+          : sources;
+        if (merged.length > 0) setSourcesMap(prev => ({ ...prev, [placeholderIndex]: merged }));
+      } catch (_) {}
       if (Array.isArray(followUpQuestions) && followUpQuestions.length > 0) {
         setRelatedMap(prev => ({ ...prev, [placeholderIndex]: followUpQuestions.slice(0, 6) }));
       }
@@ -441,6 +474,9 @@ const Home = ({ __forceChatMode = false }) => {
                         classNameGroup
                         data-message-index={index}
                       >
+                        {message.role !== 'user' && Array.isArray(sourcesMap[index]) && sourcesMap[index].length > 0 && (
+                          <SourcesBar sources={sourcesMap[index]} />
+                        )}
                         <div className={`prose max-w-none scrollbar-hidden transition-opacity duration-300 ${
                           isDarkMode ? 'prose-invert' : 'prose-gray'
                         } ${isLoading && index === throttledMessages.length - 1 && !finalizedMap[index] ? 'opacity-90' : 'opacity-100'}`}>

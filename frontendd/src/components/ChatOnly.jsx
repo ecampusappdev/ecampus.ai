@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Chat from './Chat';
-import { askQuery, submitFeedback } from '../lib/api';
+import { askQuery, submitFeedback, fetchSources } from '../lib/api';
+import SourcesBar from './SourcesBar.jsx';
 
 export default function ChatOnly() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function ChatOnly() {
   const [feedbackMap, setFeedbackMap] = useState({});
   const [finalizedMap, setFinalizedMap] = useState({});
   const [relatedMap, setRelatedMap] = useState({}); // { [index]: string[] }
+  const [sourcesMap, setSourcesMap] = useState({}); // { [index]: Array<{url, title?}> }
   const [copiedMap, setCopiedMap] = useState({});
   const [condensedMap, setCondensedMap] = useState({});
   const messagesEndRef = useRef(null);
@@ -74,6 +76,15 @@ export default function ChatOnly() {
     return processed;
   };
 
+  const extractSources = (text) => {
+    if (!text) return [];
+    const urls = Array.from(new Set(
+      (text.match(/https?:\/\/[^\s)]+/gi) || [])
+        .map(u => u.replace(/[)\]\.,]+$/g, ''))
+    ));
+    return urls.map(url => ({ url }));
+  };
+
   const handleQuery = async (queryText, conversationHistory) => {
     setIsLoading(true);
     try {
@@ -81,9 +92,22 @@ export default function ChatOnly() {
       const placeholderIndex = messages.length + 1;
       setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-      const { fullResponse, followUpQuestions } = await askQuery(queryText, conversationHistory, (delta) => {
+      // Kick off early sources fetch in parallel (do not await)
+      (async () => {
+        try {
+          const early = await fetchSources(queryText);
+          if (Array.isArray(early) && early.length > 0) {
+            setSourcesMap(prev => ({ ...prev, [placeholderIndex]: early }));
+          }
+        } catch (_) {}
+      })();
+
+      const { fullResponse, followUpQuestions, sources: serverSources } = await askQuery(queryText, conversationHistory, (delta) => {
         liveText += delta;
-        const processedLive = processResponse(liveText);
+        // Show only completed lines to create a line-by-line reveal
+        const parts = liveText.split('\n');
+        const completed = parts.length > 1 ? parts.slice(0, -1).join('\n') : '';
+        const processedLive = processResponse(completed);
         setMessages(prev => {
           const copy = [...prev];
           copy[copy.length - 1] = { role: 'assistant', content: processedLive };
@@ -98,6 +122,13 @@ export default function ChatOnly() {
         return copy;
       });
       setFinalizedMap(prev => ({ ...prev, [placeholderIndex]: true }));
+      try {
+        const sources = extractSources(processedResponse);
+        const merged = Array.isArray(serverSources) && serverSources.length > 0
+          ? [...serverSources, ...sources]
+          : sources;
+        if (merged.length > 0) setSourcesMap(prev => ({ ...prev, [placeholderIndex]: merged }));
+      } catch (_) {}
       if (Array.isArray(followUpQuestions) && followUpQuestions.length > 0) {
         setRelatedMap(prev => ({ ...prev, [placeholderIndex]: followUpQuestions.slice(0, 6) }));
       }
@@ -180,6 +211,9 @@ export default function ChatOnly() {
                   className={`rounded-lg md:rounded-xl text-sm md:text-base leading-relaxed ${message.role === 'user' ? 'max-w-[85%] px-3 md:px-3.5 py-1.5 md:py-2.5 my-3 md:my-5 bg-slate-500 text-white' : 'max-w-full p-0 bg-transparent text-white/90 border-0 chat-message rounded-none'}`}
                   style={{ overflowX: message.role !== 'user' ? 'auto' : 'hidden' }}
                 >
+                  {message.role !== 'user' && Array.isArray(sourcesMap[index]) && sourcesMap[index].length > 0 && (
+                    <SourcesBar sources={sourcesMap[index]} />
+                  )}
                   <div className="prose prose-invert max-w-none scrollbar-hidden">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
