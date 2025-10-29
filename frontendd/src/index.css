@@ -20,6 +20,27 @@
     /* Chrome/Safari/WebKit */
     display: none;
   }
+
+  /* Dark scrollbar utility for horizontal/vertical scrollers */
+  .scrollbar-dark {
+    scrollbar-width: thin;            /* Firefox */
+    scrollbar-color: #2b2b2b transparent; /* thumb track */
+  }
+  .scrollbar-dark::-webkit-scrollbar {
+    height: 8px; /* horizontal */
+    width: 8px;  /* vertical */
+    background: transparent;
+  }
+  .scrollbar-dark::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-dark::-webkit-scrollbar-thumb {
+    background-color: #2b2b2b; /* dark thumb */
+    border-radius: 9999px;
+  }
+  .scrollbar-dark::-webkit-scrollbar-thumb:hover {
+    background-color: #3a3a3a; /* slightly lighter on hover */
+  }
 }
 
 /* Table styling improvements */
