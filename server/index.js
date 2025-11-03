@@ -466,34 +466,33 @@ Your role is to act like a **helpful career counselor** who gives accurate, trus
           .filter((s) => s.length > 0)
           .slice(0, 6);
       }
-      // Also request compact list of credible sources (URLs only)
-      try {
-        const sourcesPrompt = [
-          { role: 'system', content: 'Return ONLY a compact JSON array (no markdown) of 3-6 credible, recent web sources (objects with url and optional title) that best support answering the user question. Prefer authoritative university, gov, or reputed sites. Keep titles short.' },
-          { role: 'user', content: `User question: ${question}` }
-        ];
-        const sr = await openaiClient.chat.completions.create({
-          model: modelFromEnv,
-          messages: sourcesPrompt,
-          temperature: 0.3,
-          max_tokens: 400,
-        });
-        const rawS = sr.choices?.[0]?.message?.content?.trim() || '';
-        const jsonMatchS = rawS.match(/\[([\s\S]*)\]$/);
-        const toParseS = jsonMatchS ? `[${jsonMatchS[1]}]` : rawS;
-        const parsedS = JSON.parse(toParseS);
-        if (Array.isArray(parsedS)) {
-          sources = parsedS
-            .map((it) => {
-              if (typeof it === 'string') return { url: it };
-              const url = typeof it?.url === 'string' ? it.url : '';
-              const title = typeof it?.title === 'string' ? it.title : undefined;
-              return url ? { url, title } : null;
-            })
-            .filter(Boolean)
-            .slice(0, 6);
+      // Return hardcoded list of sources with logos and headlines
+      sources = [
+        { 
+          url: 'https://www.collegevidya.com', 
+          title: 'CollegeVidya.com',
+          logo: 'https://www.google.com/s2/favicons?domain=collegevidya.com&sz=128',
+          headline: 'Compare Online Degree Programs and Universities'
+        },
+        { 
+          url: 'https://www.upgrad.com', 
+          title: 'Upgrad.com',
+          logo: 'https://www.google.com/s2/favicons?domain=upgrad.com&sz=128',
+          headline: 'Online Courses and Degree Programs for Professionals'
+        },
+        { 
+          url: 'https://www.collegedunia.com', 
+          title: 'collegedunia.com',
+          logo: 'https://www.google.com/s2/favicons?domain=collegedunia.com&sz=128',
+          headline: 'Find Best Colleges, Courses, and Admission Details'
+        },
+        { 
+          url: 'https://www.distanceeducationschool.com', 
+          title: 'distanceeducationschool.com',
+          logo: 'https://www.google.com/s2/favicons?domain=distanceeducationschool.com&sz=128',
+          headline: 'Distance Education Programs and Online Learning'
         }
-      } catch (_) {}
+      ];
     } catch (e) {
       // Fallback: attempt simple heuristic extraction of lines
       try {
@@ -526,41 +525,36 @@ Your role is to act like a **helpful career counselor** who gives accurate, trus
   }
 });
 
-// Lightweight sources endpoint to fetch credible links early (non-streaming)
+// Lightweight sources endpoint to fetch hardcoded links (non-streaming)
 app.get('/api/sources', async (req, res) => {
   try {
-    const question = String(req.query?.question || '').trim();
-    if (!question) return res.status(400).json({ error: 'question is required' });
-    if (!openaiApiKey) return res.status(500).json({ error: 'Server not configured: missing OPENAI_API_KEY' });
-
-    const sourcesPrompt = [
-      { role: 'system', content: 'Return ONLY a compact JSON array (no markdown) of 3-6 credible, recent web sources (objects with url and optional title) that best support answering the user question. Prefer authoritative university, gov, or reputed sites. Keep titles short.' },
-      { role: 'user', content: `User question: ${question}` }
-    ];
-    const sr = await openaiClient.chat.completions.create({
-      model: modelFromEnv,
-      messages: sourcesPrompt,
-      temperature: 0.3,
-      max_tokens: 400,
-    });
-    const raw = sr.choices?.[0]?.message?.content?.trim() || '';
-    const jsonMatch = raw.match(/\[([\s\S]*)\]$/);
-    const toParse = jsonMatch ? `[${jsonMatch[1]}]` : raw;
-    let sources = [];
-    try {
-      const parsed = JSON.parse(toParse);
-      if (Array.isArray(parsed)) {
-        sources = parsed
-          .map((it) => {
-            if (typeof it === 'string') return { url: it };
-            const url = typeof it?.url === 'string' ? it.url : '';
-            const title = typeof it?.title === 'string' ? it.title : undefined;
-            return url ? { url, title } : null;
-          })
-          .filter(Boolean)
-          .slice(0, 6);
+    // Return hardcoded list of sources with logos and headlines
+    const sources = [
+      { 
+        url: 'https://www.collegevidya.com', 
+        title: 'CollegeVidya.com',
+        logo: 'https://www.google.com/s2/favicons?domain=collegevidya.com&sz=128',
+        headline: 'Compare Online Degree Programs and Universities'
+      },
+      { 
+        url: 'https://www.upgrad.com', 
+        title: 'Upgrad.com',
+        logo: 'https://www.google.com/s2/favicons?domain=upgrad.com&sz=128',
+        headline: 'Online Courses and Degree Programs for Professionals'
+      },
+      { 
+        url: 'https://www.collegedunia.com', 
+        title: 'collegedunia.com',
+        logo: 'https://www.google.com/s2/favicons?domain=collegedunia.com&sz=128',
+        headline: 'Find Best Colleges, Courses, and Admission Details'
+      },
+      { 
+        url: 'https://www.distanceeducationschool.com', 
+        title: 'distanceeducationschool.com',
+        logo: 'https://www.google.com/s2/favicons?domain=distanceeducationschool.com&sz=128',
+        headline: 'Distance Education Programs and Online Learning'
       }
-    } catch (_) {}
+    ];
     res.json({ sources });
   } catch (error) {
     console.error('Error in /api/sources:', error);
