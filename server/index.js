@@ -7,6 +7,10 @@ const mongoose = require('mongoose');
 const Lead = require('./models/Lead');
 const Feedback = require('./models/Feedback');
 const FeedbackStat = require('./models/FeedbackStat');
+const Chat = require('./models/Chat');
+const SharedChat = require('./models/SharedChat');
+const { customAlphabet } = require('nanoid');
+const nanoid = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 10);
 
 dotenv.config();
 
@@ -31,6 +35,8 @@ if (!openaiApiKey) {
 }
 
 const openaiClient = new OpenAI({ apiKey: openaiApiKey });
+// Respect X-Forwarded-* headers when behind a proxy/load balancer (Render, Vercel, Nginx, etc.)
+app.set('trust proxy', true);
 
 
 
@@ -86,6 +92,51 @@ app.get('/api/feedback/stats', async (req, res) => {
   } catch (error) {
     console.error('Error fetching feedback stats:', error);
     res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+});
+
+// Create a shareable link for a chat - accepts optional chatId param or messages in body
+app.post('/api/share', async (req, res) => {
+  try {
+    const { chatId, messages } = req.body || {};
+    let chatMessages = [];
+    if (chatId) {
+      const chat = await Chat.findById(chatId).lean();
+      if (!chat) return res.status(404).json({ error: 'Chat not found' });
+      chatMessages = Array.isArray(chat.messages) ? chat.messages : [];
+    } else if (Array.isArray(messages)) {
+      chatMessages = messages.map(m => ({ role: String(m.role || '').trim() || 'assistant', content: String(m.content || '') })).filter(m => m.content);
+    } else {
+      return res.status(400).json({ error: 'chatId or messages are required' });
+    }
+    const shareId = nanoid();
+    const doc = await SharedChat.create({ shareId, sourceChat: chatId || undefined, messages: chatMessages });
+    const publicBase = process.env.PUBLIC_BASE_URL && String(process.env.PUBLIC_BASE_URL).trim();
+    const origin = publicBase || `${req.protocol}://${req.get('host')}`;
+    const url = `${origin}/share/${shareId}`;
+    res.json({ shareId: doc.shareId, url });
+  } catch (e) {
+    console.error('Error creating share link', e);
+    res.status(500).json({ error: 'Failed to create share link' });
+  }
+});
+
+// Support route with path param for compatibility: POST /api/share/:chatId
+app.post('/api/share/:chatId', async (req, res) => {
+  req.body = { ...(req.body || {}), chatId: req.params.chatId };
+  app._router.handle(req, res, () => {}, 'post', '/api/share');
+});
+
+// Fetch a shared chat by shareId
+app.get('/api/share/:shareId', async (req, res) => {
+  try {
+    const { shareId } = req.params;
+    const doc = await SharedChat.findOne({ shareId }).lean();
+    if (!doc) return res.status(404).json({ error: 'Share not found' });
+    res.json({ shareId: doc.shareId, messages: doc.messages, createdAt: doc.createdAt });
+  } catch (e) {
+    console.error('Error fetching shared chat', e);
+    res.status(500).json({ error: 'Failed to fetch shared chat' });
   }
 });
 

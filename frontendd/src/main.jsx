@@ -5,6 +5,7 @@ import App from './App.jsx'
 import Layout from './components/Layout.jsx'
 import ChatArea from './components/ChatArea.jsx'
 import Home from './components/Home.jsx'
+import SharedView from './components/SharedView.jsx'
 
 const router = createBrowserRouter([
   { 
@@ -12,7 +13,8 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <ChatArea /> },
-      { path: 'chat', element: <Home __forceChatMode /> }
+      { path: 'chat', element: <Home __forceChatMode /> },
+      { path: 'share/:shareId', element: <SharedView /> }
     ]
   }
 ])

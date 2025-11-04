@@ -5,6 +5,9 @@ import remarkGfm from 'remark-gfm';
 import Chat from './Chat';
 import { askQuery, submitFeedback, fetchSources } from '../lib/api';
 import SourcesBar from './SourcesBar.jsx';
+import ShareButton from './ShareButton.jsx';
+import ShareModal from './ShareModal.jsx';
+import { createShareLink } from '../lib/api';
 
 export default function ChatOnly() {
   const navigate = useNavigate();
@@ -22,6 +25,12 @@ export default function ChatOnly() {
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const isAtBottomRef = useRef(true);
+  
+  // Initialize theme from localStorage
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme ? savedTheme === 'dark' : true; // Default to dark if no preference
+  });
 
   // Hydrate messages from localStorage on mount (persist chat across reloads)
   useEffect(() => {
@@ -49,6 +58,19 @@ export default function ChatOnly() {
       console.error('ChatOnly error saving:', error);
     }
   }, [messages]);
+
+  useEffect(() => {
+    // Listen for theme changes
+    const handleThemeChange = (event) => {
+      setIsDarkMode(event.detail.isDarkMode);
+    };
+
+    window.addEventListener('themeChanged', handleThemeChange);
+    
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange);
+    };
+  }, []);
 
   useEffect(() => {
     const el = scrollContainerRef.current;
@@ -152,6 +174,18 @@ export default function ChatOnly() {
     }
   };
 
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const handleShare = async () => {
+    try {
+      const { url } = await createShareLink({ messages });
+      setShareUrl(url);
+      setShareOpen(true);
+    } catch (e) {
+      console.error('share failed', e);
+    }
+  };
+
   const handleChatSubmit = async (query) => {
     const userMessage = { role: 'user', content: query };
     setMessages(prev => [...prev, userMessage]);
@@ -176,16 +210,6 @@ export default function ChatOnly() {
   return (
     <div className="h-full w-full flex flex-col items-center justify-center py-2 md:py-4 lg:py-6">
       <div id="mainPanel" className="relative w-full h-[95vh] bg-neutral-800 rounded-[20px] flex flex-col items-center px-3 md:px-4 pb-3">
-        {/* Mobile toggle inside panel */}
-        <button
-          onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
-          className="absolute left-2 top-2 md:hidden w-12 h-12 bg-black/80 text-white rounded-lg flex items-center justify-center shadow-lg"
-          aria-label="Open sidebar"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
         <div className="w-full relative flex items-center justify-between py-2 md:py-3">
           <button onClick={() => {
             // Clear localStorage when going back to home
@@ -199,7 +223,11 @@ export default function ChatOnly() {
             </svg>
           </button>
           <h1 className="absolute left-1/2 -translate-x-1/2 top-1 text-white/80 text-sm md:text-lg font-semibold"> eCampus AI Chat</h1>
-          <div className="w-12" />
+          <div className="w-12 flex items-center justify-end">
+            {messages.length > 0 && (
+              <ShareButton messages={messages} />
+            )}
+          </div>
         </div>
 
         {/* Messages */}
@@ -274,6 +302,17 @@ export default function ChatOnly() {
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill={feedbackMap[index] === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" className={`w-4 h-4 rotate-180 ${feedbackMap[index] === 'down' ? 'text-white' : 'text-white/80'}`}> <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21h-3A1.5 1.5 0 0 1 3 19.5v-7A1.5 1.5 0 0 1 4.5 11h3V21Zm3-10.5 3.75-6.5a1.5 1.5 0 0 1 2.63 1.5L15.75 9h3.38a1.5 1.5 0 0 1 1.48 1.74l-1.2 7.2A2.25 2.25 0 0 1 17.17 20H10.5V10.5Z" /></svg>
                       </button>
+                      <button
+                        aria-label="Share this answer"
+                        className="cursor-pointer inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/80"
+                        onClick={handleShare}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v9" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.5 7.5 12 4l3.5 3.5" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 12v5a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-5" />
+                        </svg>
+                      </button>
                     </div>
                   )}
                   {message.role !== 'user' && finalizedMap[index] && Array.isArray(relatedMap[index]) && relatedMap[index].length > 0 && (
@@ -308,12 +347,12 @@ export default function ChatOnly() {
 
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-neutral-800 text-white/90 border border-white/10 rounded-lg md:rounded-xl px-3 py-2">
+                <div className={`${isDarkMode ? 'bg-neutral-800 text-white/90 border border-white/10' : 'bg-gray-200 text-gray-800 border border-gray-300'} rounded-lg md:rounded-xl px-3 py-2`}>
                   <div className="flex items-center space-x-2">
                     <div className="flex space-x-1">
-                      <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce"></div>
-                      <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                      <div className="w-1.5 h-1.5 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      <div className={`w-1.5 h-1.5 rounded-full animate-bounce ${isDarkMode ? 'bg-white/60' : 'bg-gray-600'}`}></div>
+                      <div className={`w-1.5 h-1.5 rounded-full animate-bounce ${isDarkMode ? 'bg-white/60' : 'bg-gray-600'}`} style={{animationDelay: '0.1s'}}></div>
+                      <div className={`w-1.5 h-1.5 rounded-full animate-bounce ${isDarkMode ? 'bg-white/60' : 'bg-gray-600'}`} style={{animationDelay: '0.2s'}}></div>
                     </div>
                     <span className="text-sm">Thinking...</span>
                   </div>
@@ -333,6 +372,7 @@ export default function ChatOnly() {
             </p>
           )}
         </div>
+        <ShareModal open={shareOpen} url={shareUrl} onClose={() => setShareOpen(false)} />
       </div>
     </div>
   );

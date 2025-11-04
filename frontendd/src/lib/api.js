@@ -98,3 +98,21 @@ export async function fetchSources(question) {
   const data = await res.json();
   return Array.isArray(data?.sources) ? data.sources : [];
 }
+
+// Create a shareable link for a chat
+export async function createShareLink({ messages, chatId }) {
+  const res = await fetch(`${API_BASE}/share${chatId ? `/${chatId}` : ''}`, {
+    method: chatId ? 'POST' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(chatId ? {} : { chatId, messages })
+  });
+  if (!res.ok) throw new Error('Failed to create share link');
+  return res.json();
+}
+
+// Fetch a shared chat by ID
+export async function fetchSharedChat(shareId) {
+  const res = await fetch(`${API_BASE}/share/${shareId}`);
+  if (!res.ok) throw new Error('Failed to fetch shared chat');
+  return res.json();
+}
