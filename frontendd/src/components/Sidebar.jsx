@@ -23,6 +23,19 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
     return () => window.removeEventListener('openSidebar', open);
   }, []);
 
+  useEffect(() => {
+    // Listen for theme changes from other components
+    const handleThemeChange = (event) => {
+      setIsDarkMode(event.detail.isDarkMode);
+    };
+
+    window.addEventListener('themeChanged', handleThemeChange);
+    
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange);
+    };
+  }, []);
+
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
@@ -61,7 +74,9 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
       {/* Mobile overlay backdrop */}
       {!collapsed && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className={`fixed inset-0 z-40 md:hidden transition-colors duration-300 ${
+            isDarkMode ? 'bg-black/50' : 'bg-black/30'
+          }`}
           onClick={handleToggle}
         />
       )}
@@ -132,13 +147,9 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
             >
               <div className="flex items-center gap-3">
                 {isDarkMode ? (
-                  <MoonIcon className={`w-5 h-5 transition-colors duration-300 ${
-                    isDarkMode ? 'text-white' : 'text-gray-800'
-                  }`} />
+                  <MoonIcon className={`w-5 h-5 transition-colors duration-300 text-white`} />
                 ) : (
-                  <SunIcon className={`w-5 h-5 transition-colors duration-300 ${
-                    isDarkMode ? 'text-white' : 'text-gray-800'
-                  }`} />
+                  <SunIcon className={`w-5 h-5 transition-colors duration-300 text-gray-800`} />
                 )}
                 {!collapsed && (
                   <span className={`text-sm font-medium transition-colors duration-300 ${

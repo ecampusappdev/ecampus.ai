@@ -5,7 +5,6 @@ import remarkGfm from 'remark-gfm';
 import Chat from './Chat';
 import { askQuery, submitFeedback, fetchSources } from '../lib/api';
 import SourcesBar from './SourcesBar.jsx';
-import ShareButton from './ShareButton.jsx';
 import ShareModal from './ShareModal.jsx';
 import { createShareLink } from '../lib/api';
 
@@ -25,6 +24,8 @@ export default function ChatOnly() {
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const isAtBottomRef = useRef(true);
+  const prevScrollTopRef = useRef(0);
+  const [showHamburger, setShowHamburger] = useState(true);
   
   // Initialize theme from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -78,6 +79,16 @@ export default function ChatOnly() {
     const onScroll = () => {
       const threshold = 60;
       isAtBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight <= threshold;
+      
+      // Hide hamburger button when scrolling down
+      const current = el.scrollTop;
+      const prev = prevScrollTopRef.current;
+      if (current > prev + 10) {
+        setShowHamburger(false);
+      } else if (current < prev - 10) {
+        setShowHamburger(true);
+      }
+      prevScrollTopRef.current = current;
     };
     el.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
@@ -219,7 +230,26 @@ export default function ChatOnly() {
 
   return (
     <div className="h-full w-full flex flex-col items-center justify-center py-2 md:py-4 lg:py-6">
-      <div id="mainPanel" className="relative w-full h-[95vh] bg-neutral-800 rounded-[20px] flex flex-col items-center px-3 md:px-4 pb-3">
+      <div id="mainPanel" className={`relative w-full h-[95vh] rounded-[20px] flex flex-col items-center px-3 md:px-4 pb-3 transition-colors duration-300 ${
+        isDarkMode ? 'bg-neutral-800' : 'bg-white'
+      }`}>
+        {/* Mobile sidebar toggle button */}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('openSidebar'))}
+          className={`absolute left-3 top-3 md:hidden w-10 h-10 rounded-lg flex items-center justify-center shadow-lg transition-all duration-200 ${
+            showHamburger ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          } ${
+            isDarkMode 
+              ? 'bg-black/80 text-white' 
+              : 'bg-gray-300/80 text-gray-800'
+          }`}
+          aria-label="Open sidebar"
+        >
+          <svg className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-gray-800'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        
         <div className="w-full relative flex items-center justify-between py-2 md:py-3">
           <button onClick={() => {
             // Clear localStorage when going back to home
@@ -227,17 +257,16 @@ export default function ChatOnly() {
               localStorage.removeItem('chat_messages');
             } catch (_) {}
             navigate('/');
-          }} className="hidden md:flex items-center justify-center w-10 h-10 text-white/70 hover:text-white transition-colors">
+          }} className={`hidden md:flex items-center justify-center w-10 h-10 transition-colors ${
+            isDarkMode ? 'text-white/70 hover:text-white' : 'text-gray-600 hover:text-gray-800'
+          }`}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="absolute left-1/2 -translate-x-1/2 top-1 text-white/80 text-sm md:text-lg font-semibold"> eCampus AI Chat</h1>
-          <div className="w-12 flex items-center justify-end">
-            {messages.length > 0 && (
-              <ShareButton messages={messages} />
-            )}
-          </div>
+          
+          <h1 className={`absolute left-1/2 -translate-x-1/2 top-1 text-sm md:text-lg font-semibold ${isDarkMode ? 'text-white/80' : 'text-gray-800'}`}> eCampus AI Chat</h1>
+          <div className="w-12" />
         </div>
 
         {/* Messages */}
