@@ -179,7 +179,17 @@ export default function ChatOnly() {
   const handleShare = async () => {
     try {
       const { url } = await createShareLink({ messages });
-      setShareUrl(url);
+      // Normalize preview to current frontend origin during local dev
+      try {
+        const built = new URL(url);
+        const current = window.location.origin;
+        const normalized = built.pathname.startsWith('/share/') && built.origin !== current
+          ? `${current}${built.pathname}`
+          : url;
+        setShareUrl(normalized);
+      } catch (_) {
+        setShareUrl(url);
+      }
       setShareOpen(true);
     } catch (e) {
       console.error('share failed', e);

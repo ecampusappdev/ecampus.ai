@@ -163,28 +163,22 @@ const Home = ({ __forceChatMode = false }) => {
     }
   }, [messages, isChatActive, suggestedPlaceholder]);
 
-  // Process response for markdown rendering (clean/sanitize and normalize)
   const processResponse = (text) => {
     let processed = text || '';
 
-    // 1) Normalize horizontal rules to markdown hr
     processed = processed
       .replace(/<hr[^>]*>/gi, '\n\n---\n\n')
       .replace(/\n\s*---\s*\n/g, '\n\n---\n\n');
 
-    // 2) Convert HTML headings/strong to markdown
     processed = processed.replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '# $1');
     processed = processed.replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '## $1');
     processed = processed.replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '### $1');
     processed = processed.replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi, '**$1**');
 
-    // 3) Strip any remaining HTML tags (leftovers injected by previous logic)
     processed = processed.replace(/<[^>]+>/g, '');
 
-    // 4) Normalize bullets that use • into markdown '-'
     processed = processed.replace(/^\s*•\s+/gm, '- ');
 
-    // 5) Ensure the follow-up prompt appears on its own paragraph at the end
     processed = processed.replace(/(\S)\s*(\*\*Would you like to know[^*]*\*\*)\s*$/i, '$1\n\n$2');
 
     return processed;
@@ -278,11 +272,9 @@ const Home = ({ __forceChatMode = false }) => {
     
     try {
       let liveText = '';
-      // Add assistant placeholder and remember its index
       const placeholderIndex = messages.length + 1; // after user message appended by caller
       setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-      // Kick off early sources fetch in parallel (do not await)
       (async () => {
         try {
           const early = await fetchSources(queryText);
@@ -311,7 +303,6 @@ const Home = ({ __forceChatMode = false }) => {
         copy[copy.length - 1] = { role: 'assistant', content: processedResponse };
         return copy;
       });
-      // Mark this assistant message as finalized so actions can appear
       setFinalizedMap(prev => ({ ...prev, [placeholderIndex]: true }));
       // Extract sources for this assistant message
       try {
@@ -375,7 +366,16 @@ const Home = ({ __forceChatMode = false }) => {
   const openShare = async () => {
     try {
       const { url } = await createShareLink({ messages });
-      setShareUrl(url);
+      try {
+        const built = new URL(url);
+        const current = window.location.origin;
+        const normalized = built.pathname.startsWith('/share/') && built.origin !== current
+          ? `${current}${built.pathname}`
+          : url;
+        setShareUrl(normalized);
+      } catch (_) {
+        setShareUrl(url);
+      }
       setShareOpen(true);
     } catch (e) { console.error('share failed', e); }
   };
