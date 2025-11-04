@@ -8,6 +8,13 @@ import "slick-carousel/slick/slick-theme.css";
 import manipal from "../assets/manipal.webp";
 import dypatil from "../assets/dypatil.webp";
 import mangalayatan from "../assets/mangalayatan.webp"
+import amity_light from "../assets/amity_light.png"
+import ignou_light from "../assets/ignou_light.png" 
+import mangalayatan_light from "../assets/mangalayatan_light.png"
+import manipal_light from "../assets/manipal_light.png"
+import dypatil_light from "../assets/dypatil_light.png"
+
+
 const UniversitySlider = () => {
   // Initialize theme from localStorage immediately to prevent flash
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -77,6 +84,54 @@ const UniversitySlider = () => {
     },
   ];
 
+  const logoLight=[
+    {
+      id: 1,
+      name: "Amity University",
+      logo: amity_light,
+      website: "https://amityonline.com/",
+      courses: "7+ Courses",
+      students: "12k+ Students",
+      teachers: "8+ Teachers",
+    },
+    {
+      id: 2,
+      name: "IGNOU",
+      logo: ignou_light,
+      website: "https://www.ignou.ac.in/",
+      courses: "10+ Courses",
+      students: "20k+ Students",
+      teachers: "15+ Teachers",
+    },
+    {
+      id: 3,
+      name: "mangalayatan university",
+      logo: mangalayatan_light,
+      website: "https://www.muonline.ac.in/",
+      courses: "12+ Courses",
+      students: "18k+ Students",
+      teachers: "20+ Teachers",
+    },
+    {
+      id: 4,
+      name: "Manipal University",
+      logo: manipal_light,
+      website: "https://www.manipal.edu/",
+      courses: "15+ Courses",
+      students: "25k+ Students",
+      teachers: "30+ Teachers",
+    },
+    {
+      id: 5,
+      name: "DY Patil University",
+      logo: dypatil_light,
+      website: "https://www.dypatiledu.com/dypatil-university-online-education-mba-cta?source=DYPatil&media=IGAW&campaign=S-BRND-D&utm_source=Google&utm_Medium=Search&utm_campaign=15590069933&utm_adgroup=128498308502&utm_term=Dy%20patil%20online&utm_device=c&match_type=p&city=9184819&state=&gad_source=1&gad_campaignid=15590069933&gbraid=0AAAAAoOHAZOBR_kSHmV7HRHZoukm82s8y&gclid=CjwKCAjwlt7GBhAvEiwAKal0cn1VhdTGj-mefvEfb7DnrzLUOeuPfzKK4gwaTr9d_QJ2UmGUZalNZBoCezAQAvD_BwE#",
+      courses: "9+ Courses",
+      students: "10k+ Students",
+      teachers: "12+ Teachers",
+    }
+  ]
+
   // Determine slidesToShow based on actual viewport (hard override for phones)
   const [slidesToShow, setSlidesToShow] = useState(3);
   useEffect(() => {
@@ -127,10 +182,13 @@ const UniversitySlider = () => {
     return () => clearTimeout(id);
   }, []);
 
+  // Pick dataset based on theme
+  const data = isDarkMode ? items : logoLight;
+
   return (
     <div className="mx-auto px-4 py-6 max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl">
       <Slider key={`slides-${slidesToShow}`} {...settings}>
-        {items.map((item) => (
+        {data.map((item) => (
           <div key={item.id} className="px-2">
             <div className={`relative group shadow-lg rounded-xl overflow-hidden h-24 md:h-28 transition-colors duration-300 ${
               isDarkMode ? 'bg-black' : 'bg-gray-300'
@@ -142,7 +200,7 @@ const UniversitySlider = () => {
                   src={item.logo}
                   alt={item.name}
                   className="max-h-full max-w-full object-contain"
-                  style={item.name === 'Amity University' ? { maxHeight: '40%' } : undefined}
+                  style={item.name === 'Amity University' ? (isDarkMode ? { maxHeight: '40%' } : { maxHeight: '80%' }) : undefined}
                   onError={(e) => {
                     e.target.style.display = 'none';
                     e.target.nextElementSibling.style.display = 'flex';

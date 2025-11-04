@@ -1,23 +1,15 @@
 
-
-
 import React, { useState, useEffect } from 'react';
-import ecampuss from '../assets/ecampuss.png';
-import ecampus_logo from '../assets/ecampus_logo.png';
-
-// Sidebar with pure black background - no inner gradient panel
-// - Collapsible via toggle button (hamburger)
-// - Clean black design matching the Bloom interface
-// - Parent can control with props, or it manages its own collapsed state
+import ecampuss_dark from '../assets/ecampuss.png';
+import ecampus_logo_dark from '../assets/ecampus_logo.png';
+import ecampuss_light from '../assets/ecampuss_logo_light.png'
 
 const Sidebar = ({ initialCollapsed = true, onToggle }) => {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
-  // Initialize theme from localStorage immediately to prevent flash
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
-    return savedTheme ? savedTheme === 'dark' : true; // Default to dark if no preference
+    return savedTheme ? savedTheme === 'dark' : true; 
   });
-  // Simplified: no dynamic positioning to avoid inconsistencies across devices
 
   const handleToggle = () => {
     const next = !collapsed;
@@ -25,7 +17,6 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
     if (typeof onToggle === 'function') onToggle(next);
   };
 
-  // Listen for global openSidebar to open the sidebar from inside panels
   useEffect(() => {
     const open = () => setCollapsed(false);
     window.addEventListener('openSidebar', open);
@@ -55,7 +46,6 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
   };
 
   useEffect(() => {
-    // Apply theme to document immediately since state is already initialized
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('light');
@@ -65,7 +55,6 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
     }
   }, [isDarkMode]);
 
-  // Removed dynamic mobile toggle positioning
 
   return (
     <>
@@ -77,10 +66,9 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
         />
       )}
       
-      {/* Mobile floating toggle button removed; handled within main panel components */}
-      
+    
       {/* Sidebar */}
-                <div className={`h-full transition-[width] duration-300 shadow-2xl shadow-gray-900 absolute left-0 top-0 z-50 md:relative md:flex-shrink-0 ${collapsed ? 'w-0 md:w-18' : 'w-64 md:w-56 lg:w-64'}`}>
+                <div className={`h-full transition-[width] duration-300 absolute left-0 top-0 z-50 md:relative md:flex-shrink-0 ${collapsed ? 'w-0 md:w-18' : 'w-64 md:w-56 lg:w-64'}`}>
       {/* Sidebar container */}
       <div className={`h-full w-full relative transition-colors duration-300 ${collapsed ? 'hidden md:block' : 'block'} ${
         isDarkMode ? 'bg-black' : 'bg-gray-200'
@@ -89,14 +77,26 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
         <div className="absolute top-0.5 left-2 right-2 md:left-3 md:right-3 flex items-center justify-between pt-0.5">
           {collapsed ? (
             // collapsed: one button with just the logo (acts as open)
-            <button aria-label="Open sidebar" onClick={handleToggle} className="inline-flex items-center mt-1 md:mt-2 justify-center w-8 h-8 md:w-10 md:h-10 rounded-lg hover:bg-white/20">
-              <img src={ecampuss} alt="ecampus" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+            <button aria-label="Open sidebar" onClick={handleToggle} className={`inline-flex items-center mt-1 md:mt-2 justify-center w-8 h-8 md:w-10 md:h-10 rounded-lg transition-colors duration-300 ${
+              isDarkMode 
+                ? 'hover:bg-white/20' 
+                : 'hover:bg-gray-300'
+            }`}>
+              <img 
+                src={ecampuss_dark} 
+                alt="ecampus" 
+                className="w-8 h-8 md:w-10 md:h-10 object-contain transition-opacity duration-300" 
+              />
             </button>
               ) : (
             // expanded: static logo + text on the left, separate close button on right
             <>
               <div className="inline-flex items-center gap-1 md:gap-2 px-1 h-16 md:h-20">
-                <img src={ecampus_logo} alt="ecampus" className="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 object-contain" />
+                <img 
+                  src={isDarkMode ? ecampus_logo_dark : ecampuss_light} 
+                  alt="ecampus" 
+                  className="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 object-contain transition-opacity duration-300" 
+                />
                 {/* <span className={`font-semibold tracking-tight text-xl md:text-2xl lg:text-3xl transition-colors duration-300 ${
                   isDarkMode ? 'text-white' : 'text-gray-800'
                 }`}>CAMPUS</span> */}
@@ -120,18 +120,15 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
           <div className="flex flex-col gap-1 flex-1">
             <SidebarItem icon={NewChatButton} label="New Chat" collapsed={collapsed} isDarkMode={isDarkMode}/>
             <SidebarItem icon={HomeIcon} label="Home" collapsed={collapsed} isDarkMode={isDarkMode} />
-            {/* <SidebarItem icon={ListIcon} label="Curriculum" collapsed={collapsed} isDarkMode={isDarkMode} />
-            <SidebarItem icon={QuizIcon} label="Quiz" collapsed={collapsed} isDarkMode={isDarkMode} />
-            <SidebarItem icon={CogIcon} label="Settings" collapsed={collapsed} isDarkMode={isDarkMode} /> */}
           </div>
           
-          {/* Theme toggle at bottom - HIDDEN FOR NOW */}
-          {/* <div className="pb-6">
+          {/* Theme toggle at bottom */}
+          <div className="pb-6">
             <button
               onClick={toggleTheme}
               className={`w-full flex items-center rounded-lg px-3 py-2.5 transition-colors ${
                 collapsed ? 'justify-center' : 'justify-center'
-              } ${isDarkMode ? 'bg-neutral-900 hover:bg-neutral-700' : 'bg-neutral-400 hover:bg-neutral-500'}`}
+              } ${isDarkMode ? 'bg-neutral-900 hover:bg-neutral-700' : 'bg-neutral-300 hover:bg-neutral-400'}`}
             >
               <div className="flex items-center gap-3">
                 {isDarkMode ? (
@@ -152,7 +149,7 @@ const Sidebar = ({ initialCollapsed = true, onToggle }) => {
                 )}
               </div>
             </button>
-          </div> */}
+          </div>
         </div>
       </div>
       </div>
