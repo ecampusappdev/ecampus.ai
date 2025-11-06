@@ -136,6 +136,15 @@
   }
 }
 
+/* Prevent iOS Safari zoom on input focus by ensuring >=16px font-size */
+@media (max-width: 480px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Dark theme color pass to match requested style */
 @layer components {
   .chat-table {
