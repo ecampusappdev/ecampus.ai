@@ -576,6 +576,73 @@ Your role is to act like a **helpful career counselor** who gives accurate, trus
   }
 });
 
+// Proxy endpoint to use FastAPI RAG backend while preserving frontend protocol
+app.post('/api/rag-query', async (req, res) => {
+  try {
+    const { question } = req.body || {};
+    if (!question || typeof question !== 'string') {
+      return res.status(400).json({ error: 'Invalid request: question is required' });
+    }
+
+    const ragUrl = process.env.RAG_API_URL || 'http://localhost:8000/ask';
+    let fullResponse = '';
+
+    try {
+      const ragRes = await fetch(ragUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+      });
+
+      if (!ragRes.ok) {
+        console.error('RAG backend returned non-200:', ragRes.status, await ragRes.text());
+        throw new Error('RAG backend error');
+      }
+
+      const ragJson = await ragRes.json();
+      const answer = ragJson?.answer || ragJson?.response || ragJson?.result || '';
+      fullResponse = String(answer || '').trim();
+
+      if (!fullResponse) {
+        throw new Error('RAG backend returned empty answer');
+      }
+    } catch (e) {
+      console.error('Error calling RAG backend:', e);
+      return res.status(500).json({ error: 'Failed to get response from RAG backend' });
+    }
+
+    // SSE-style single final event, matching what the frontend expects
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    res.write(
+      `data: ${JSON.stringify({
+        content: '',
+        full: true,
+        fullResponse,
+        followUpQuestions: [],
+        sources: [],
+      })}\n\n`,
+    );
+    res.end();
+  } catch (error) {
+    console.error('Error in /api/rag-query:', error);
+    if (res.headersSent) {
+      res.write(
+        `data: ${JSON.stringify({
+          content: '',
+          full: true,
+          fullResponse: 'Error: Failed to get response from RAG backend. Please try again.',
+        })}\n\n`,
+      );
+      res.end();
+    } else {
+      res.status(500).json({ error: 'Failed to get response from RAG backend' });
+    }
+  }
+});
+
 // Lightweight sources endpoint to fetch hardcoded links (non-streaming)
 app.get('/api/sources', async (req, res) => {
   try {
