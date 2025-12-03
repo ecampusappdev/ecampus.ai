@@ -52,6 +52,7 @@ export default function ChatArea({ onSubmit, placeholder }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
+        
         <div className="flex-1 w-full flex flex-col items-center justify-center">
           <h1 className={`font-sans text-2xl sm:text-3xl md:text-4xl font-semibold sm:font-bold md:font-extrabold tracking-tight text-center mt-12 mb-6 transition-colors duration-300 ${
             isDarkMode ? 'text-gray-100' : 'text-gray-900'

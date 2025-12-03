@@ -1,7 +1,8 @@
 export const API_BASE = import.meta.env.VITE_API_BASE || '/api';
 
 export async function askQuery(question, conversationHistory = [], onDelta) {
-  const res = await fetch(`${API_BASE}/query`, {
+  // Use RAG-backed endpoint; fallback remains /api/query if you want to switch back later
+  const res = await fetch(`${API_BASE}/rag-query`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question, conversationHistory })
